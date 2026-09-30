@@ -1,3 +1,4 @@
+import './_setup.mjs';
 import { fileURLToPath } from 'node:url';
 // Auto-split: a plain chat task; the model calls run_in_parallel itself; helpers run concurrently; results come back.
 import http from 'node:http';
@@ -58,7 +59,7 @@ const webp = ctx.pages()[0]; await webp.goto(`${B}/start`);
 const v = await ctx.newPage(); await v.setViewportSize({ width: 400, height: 860 });
 const errors = []; v.on('pageerror', e => errors.push(String(e)));
 await v.goto(`chrome-extension://${extId}/permission.html`);
-await v.evaluate(() => chrome.storage.local.set({ apiKey: 'x', baseUrl: 'http://localhost:8779/v1', vision: false, notify: false, repeatAlarm: false }));
+await v.evaluate(() => chrome.storage.local.set({ apiKey: 'x', verifyDone: false, baseUrl: 'http://localhost:8779/v1', vision: false, notify: false, repeatAlarm: false }));
 const tabId = await v.evaluate(async () => (await chrome.tabs.query({})).find(t => t.url.startsWith('http'))?.id);
 await v.goto(`chrome-extension://${extId}/sidepanel.html?tab=${tabId}`);
 await v.waitForTimeout(600);

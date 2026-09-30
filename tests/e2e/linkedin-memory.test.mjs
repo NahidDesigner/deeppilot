@@ -1,3 +1,4 @@
+import './_setup.mjs';
 import { fileURLToPath } from 'node:url';
 import http from 'node:http';
 import { chromium } from 'playwright';
@@ -42,7 +43,7 @@ function stateOf(messages) {
   }
   return '';
 }
-const idOf = (state, re) => { const l = state.split('\n').find(x => re.test(x)); return l ? parseInt(l.match(/^\[(\d+)\]/)[1], 10) : -1; };
+const idOf = (state, re) => { const l = state.split('\n').find(x => re.test(x)); return l ? parseInt(l.match(/^\*?\[(\d+)\]/)[1], 10) : -1; };
 const call = (name, args) => ({ role: 'assistant', content: '', tool_calls: [{ id: 'c' + calls, type: 'function', function: { name, arguments: JSON.stringify(args) } }] });
 
 function brain(messages) {
@@ -99,7 +100,7 @@ panel.on('pageerror', e => errors.push(String(e)));
 await panel.goto(`chrome-extension://${extId}/permission.html`);
 const webTabId = await panel.evaluate(async () => (await chrome.tabs.query({})).find(t => !(t.url || '').startsWith('chrome-extension'))?.id);
 await panel.goto(`chrome-extension://${extId}/sidepanel.html?tab=${webTabId}`);
-await panel.evaluate(() => chrome.storage.local.set({ apiKey: 'x', baseUrl: 'http://localhost:8766/v1', model: 'deepseek-flash', vision: true, confirmRisky: true, maxSteps: 100 }));
+await panel.evaluate(() => chrome.storage.local.set({ apiKey: 'x', verifyDone: false, baseUrl: 'http://localhost:8766/v1', model: 'deepseek-flash', vision: true, confirmRisky: true, maxSteps: 100 }));
 await panel.reload();
 await web.bringToFront();
 

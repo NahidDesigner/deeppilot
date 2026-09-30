@@ -1,3 +1,4 @@
+import './_setup.mjs';
 import { fileURLToPath } from 'node:url';
 // Agents: build from example, draft with AI, run with inputs, for-each items, retry, pause/resume, files.
 import http from 'node:http';
@@ -80,7 +81,7 @@ const webp = ctx.pages()[0]; await webp.goto(`${B}/start`);
 const v = await ctx.newPage(); await v.setViewportSize({ width: 420, height: 860 });
 const errors = []; v.on('pageerror', e => errors.push(String(e)));
 await v.goto(`chrome-extension://${extId}/permission.html`);
-await v.evaluate(() => chrome.storage.local.set({ apiKey: 'x', baseUrl: 'http://localhost:8776/v1', vision: false, notify: false, repeatAlarm: false }));
+await v.evaluate(() => chrome.storage.local.set({ apiKey: 'x', verifyDone: false, baseUrl: 'http://localhost:8776/v1', vision: false, notify: false, repeatAlarm: false }));
 const tabId = await v.evaluate(async () => (await chrome.tabs.query({})).find(t => t.url.startsWith('http'))?.id);
 await v.goto(`chrome-extension://${extId}/sidepanel.html?tab=${tabId}`);
 

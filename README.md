@@ -40,8 +40,8 @@ Browser agents like Claude in Chrome are brilliant — and priced out of reach f
 <tr>
 <td width="50%" valign="top">
 
-### 🧭 Real browser control
-Real mouse and keyboard input through Chrome's DevTools protocol, a numbered map of every clickable element, screenshots when the page changes, and a visible cursor so you can watch it work. It works in **its own background tab** — it never steals your focus.
+### 🧭 Sees pages like a person
+Every step it gets a map of the page: each control with **the table row or card it belongs to** (which of 30 "Edit" buttons is *www*), **what's new** since its last action, **error and success messages**, open dialogs, visible table rows and values, and **everything inside iframes** — cPanel, payment forms, embedded editors. It can **find** anything on a long page, **extract** answers from it, fill **whole forms** in one step, drag, zoom into small details and read **PDFs**. Real mouse & keyboard input, its own background tab, never steals your focus.
 
 </td>
 <td width="50%" valign="top">
@@ -62,6 +62,20 @@ When a job has many independent items — audit 10 websites, find the email on e
 
 ### 📄 Real files, both ways
 Creates **Excel, PDF, Word, CSV**, JSON and any text format. **Attach** CSV, Excel, Word or text files to a message (📎, drag & drop or paste) and it reads them. Saves images from pages and uploads files into any website's upload box — e.g. make an image on ChatGPT and set it as a WordPress featured image.
+
+</td>
+</tr>
+<tr>
+<td valign="top">
+
+### 🧠 A second brain & site know-how
+An independent **check before "done"** compares your request with what was actually done — no more stopping half-way. Add an optional **stronger planner model** for hard sites while DeepSeek does the clicking. Built-in **Site Playbooks** for Cloudflare, Meta Ads Manager, cPanel, WordPress, Hostinger, GoDaddy, Namecheap, Google Ads, Search Console, Analytics, LinkedIn, Gmail, Canva, Shopify and more — and it **learns notes per site** as it works.
+
+</td>
+<td valign="top">
+
+### ⏰ Scheduled runs
+Run any task, `/skill` or `/agent` **once, hourly, daily, on weekdays or weekly** — e.g. your LinkedIn welcome messages every morning at 9. Results land in History with a notification.
 
 </td>
 </tr>
@@ -119,6 +133,10 @@ That's it. Try: *"Find 10 HVAC companies in Dallas on Google Maps and give me a 
 
 > Works in Chrome 120+ and other Chromium browsers that support extension side panels (such as Edge and Brave). Chrome Sync needs Chrome signed in with **Extensions** included in sync.
 
+## 🔬 How it compares
+
+We audited Claude in Chrome, Nanobrowser, browser-use, BrowserOS, OpenBrowse, Pie and others feature by feature — perception, tools, planning, safety — and built what makes their results good into DeepPilot 2.5. **[Read the full audit →](docs/AUDIT.md)**
+
 ## 🏎️ Speed & performance
 
 **How fast DeepPilot works depends mostly on your internet connection and your computer — not on DeepPilot itself.** Every step is a round trip: read the page → send it to DeepSeek → wait for the answer → act on the page. So the same task can take 3 minutes on one machine and 8 on another.
@@ -152,7 +170,7 @@ DeepPilot speaks the OpenAI-compatible API, so you can point **Settings → Base
 - Your API keys, history, memories, skills and agents are stored **locally in Chrome**. Nothing goes to a DeepPilot server — there isn't one.
 - Page content and screenshots go **only** to the model endpoint you configure. Voice clips go to the transcription service you choose (Groq by default).
 - Chrome Sync stores your memory/skills/agents/settings in **your own Google account**; API keys are excluded unless you opt in.
-- Web pages are treated as data, never as instructions, and DeepPilot asks before purchases, sending, posting or deleting.
+- Web pages are treated as data, never as instructions: page text is fenced with a random per-task marker the page can't fake. DeepPilot asks before purchases, sending, posting or deleting — and before *saving or publishing* on high-stakes dashboards (DNS, ad spend, hosting, payments). Choose "Always on this site" for sites you trust, and block sites it must never touch.
 - It needs powerful permissions (debugger, all sites) to click like a human — [SECURITY.md](SECURITY.md) explains each one and how to report a vulnerability.
 
 > ⚠️ Automating sites like LinkedIn, Facebook or Google may break their terms and can get accounts limited. Keep batches small and human-paced — DeepPilot helps by running those one at a time.
@@ -177,7 +195,7 @@ Plain ES modules, **no build step** — edit a file, reload the extension. Read 
 git clone https://github.com/NahidDesigner/deeppilot && cd deeppilot
 npm install            # only Playwright, for the tests
 npm run check          # syntax, manifest, versions, secrets — no browser needed
-npm test               # 15 end-to-end suites, fully offline (mock DeepSeek + mock websites)
+npm test               # 17 end-to-end suites, fully offline (mock DeepSeek + mock websites)
 npm run build          # dist/deeppilot-vX.Y.Z.zip
 ```
 
@@ -186,10 +204,11 @@ The end-to-end tests load the real extension into Chromium and drive it like a u
 ## 🗺️ Roadmap
 
 - [ ] Chrome Web Store listing
-- [ ] Reading PDFs and images you attach
+- [ ] Workflow recording — do a task once, DeepPilot turns it into a skill
+- [ ] GIF / replay of a run
+- [ ] MCP connection (drive DeepPilot from Claude Code, Cursor…)
+- [ ] Reading images you attach
 - [ ] One-click Google Drive cloud history
-- [ ] Scheduled agents (run every morning)
-- [ ] iframe support
 
 Ideas and votes welcome in [Discussions](https://github.com/NahidDesigner/deeppilot/discussions) and [Issues](https://github.com/NahidDesigner/deeppilot/issues).
 

@@ -1,3 +1,4 @@
+import './_setup.mjs';
 import { fileURLToPath } from 'node:url';
 // Designed PDFs: the Geist font is embedded (so —, ≤, →, €, ₹ render), headings/tables/callouts build,
 // "Page x of y" footers exist, and hard line breaks are kept.

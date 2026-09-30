@@ -1,6 +1,6 @@
 {
   "name": "deeppilot",
-  "version": "2.4.2",
+  "version": "2.5.0",
   "private": true,
   "description": "An AI agent that flies your browser — powered by your own DeepSeek key. Chrome extension (Manifest V3), no build step.",
   "type": "module",

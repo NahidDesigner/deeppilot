@@ -1,3 +1,4 @@
+import './_setup.mjs';
 import { fileURLToPath } from 'node:url';
 // Reliability: (1) after a search on a single-page app the next page state shows the results that load
 // late (no stale reads); (2) a busy page never makes a step hang; (3) going in circles triggers a nudge.
@@ -41,7 +42,7 @@ const web = ctx.pages()[0]; await web.goto(`${B}/list`);
 const v = await ctx.newPage();
 const errors = []; v.on('pageerror', e => errors.push(String(e)));
 await v.goto(`chrome-extension://${extId}/permission.html`);
-await v.evaluate(p => chrome.storage.local.set({ apiKey: 'x', baseUrl: `http://localhost:${p}/v1`, vision: false, notify: false, repeatAlarm: false }), PORT);
+await v.evaluate(p => chrome.storage.local.set({ apiKey: 'x', verifyDone: false, baseUrl: `http://localhost:${p}/v1`, vision: false, notify: false, repeatAlarm: false }), PORT);
 const tabId = await v.evaluate(async () => (await chrome.tabs.query({})).find(t => t.url.includes('/list'))?.id);
 await v.goto(`chrome-extension://${extId}/sidepanel.html?tab=${tabId}`); await v.waitForTimeout(500);
 await v.fill('#input', 'check who I already messaged'); await v.click('#sendBtn');

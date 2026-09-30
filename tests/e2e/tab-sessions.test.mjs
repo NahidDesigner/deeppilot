@@ -1,3 +1,4 @@
+import './_setup.mjs';
 import { fileURLToPath } from 'node:url';
 // v1.4: per-tab sessions in the background engine, panel close/reopen, nudges, streaming.
 import http from 'node:http';
@@ -81,7 +82,7 @@ const tabB = await ctx.newPage(); await tabB.goto(`${B}/startB`);
 const tabUser = await ctx.newPage(); await tabUser.goto(`${B}/user-work`);
 const helper = await ctx.newPage();
 await helper.goto(`chrome-extension://${extId}/permission.html`);
-await helper.evaluate(() => chrome.storage.local.set({ apiKey: 'x', baseUrl: 'http://localhost:8772/v1', repeatAlarm: false, notify: true }));
+await helper.evaluate(() => chrome.storage.local.set({ apiKey: 'x', verifyDone: false, baseUrl: 'http://localhost:8772/v1', repeatAlarm: false, notify: true }));
 const ids = await helper.evaluate(async () => Object.fromEntries((await chrome.tabs.query({})).map(t => [t.url.split('/').pop(), t.id])));
 const openView = async (tabId) => {
   const p = await ctx.newPage();

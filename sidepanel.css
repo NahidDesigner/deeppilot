@@ -671,3 +671,13 @@ kbd { font-size: 11px; }
 .sync-meter i.mid { background: var(--warn); }
 .sync-meter i.high { background: var(--danger); }
 .sync-actions { flex-wrap: wrap; gap: 8px; }
+
+.pb-head { margin-top: 22px; }
+#playbookList .mem-id { max-width: 42%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+#playbookList .mem-t { white-space: pre-wrap; }
+
+/* scheduled runs */
+.sched-head { margin-top: 22px; }
+.sched-card.off { opacity: 0.65; }
+.card-cmd.muted { color: var(--ink-faint); }
+#scheduleForm { margin-top: 10px; }

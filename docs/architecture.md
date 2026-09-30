@@ -25,7 +25,12 @@ Each browser tab gets its own **Session** (`tab:<id>`); the full-page view gets 
 
 ## The agent loop — `lib/agent.js`
 
-1. **Observe**: `lib/browser.js → observe()` injects `pageSnapshot` (`lib/page.js`). It lists the visible interactive elements as `[id] <tag> "label"`, optionally draws numbered boxes, and takes a CDP screenshot.
+1. **Observe**: `lib/browser.js → observe()` injects `pageSnapshot` (`lib/page.js`) into the page and into every visible iframe. It uses `chrome.scripting` with frame ids, which also reaches cross-origin frames.
+   - It lists the interactive elements in view as `[id] <tag> "label"`, with states and `— in: "…"` row/card context for repeated or generic controls.
+   - `*` marks elements that are new since the last snapshot.
+   - An outline adds headings, alerts, dialogs, table rows and short values.
+   - Frame elements get ids from `1000·k`. `runOn()` / `elementPoint()` send actions to the right frame and add the frame's offset.
+   - Numbered boxes are drawn for a CDP screenshot when one is needed.
 2. **Think**: `lib/llm.js` streams a chat completion with the tool definitions and returns text, tool calls and token usage.
 3. **Act**: `execute()` runs each tool: real mouse and keyboard through CDP (`Input.dispatchMouseEvent`, `insertText`), navigation, reading, files, memory, `ask_user`, `run_in_parallel`, `done`…
 4. Repeat until `done`. Plain replies without a tool call are nudged back into the loop rather than treated as the end.
@@ -36,7 +41,17 @@ Each browser tab gets its own **Session** (`tab:<id>`); the full-page view gets 
 - An unchanged element list is replaced by a one-line reference to the previous step.
 - A new task in the same chat compacts the earlier ones.
 
-**Safety.** Page text is treated as data. Risky clicks (buy, send, delete, post) go through `ui.confirm`. `repairHistory()` guarantees every tool call has a matching result, so Stop never leaves the conversation in a state the API rejects.
+**Second brain.**
+- `verifyDone()` sends a tool-less review of the task, actions, files, notes and current page before `done` is accepted (at most 2 rejections).
+- With a planner model set, `consultPlanner()` writes the plan at step 1, then every 10 steps and after 3 failed actions.
+- The stall detector (unchanged page fingerprint for 5 steps) and the loop detector push firm nudges.
+- `lib/playbooks.js` adds site know-how the first time a host is reached in a task.
+
+**Safety.**
+- Page-derived text is fenced in `<untrusted_page_data id=nonce>`.
+- `confirmIfRisky()` also gates commit buttons on `HIGH_STAKES` hosts, with per-site trust.
+- `blockedHost()` enforces the user's blocklist.
+- Page text is treated as data. Risky clicks (buy, send, delete, post) go through `ui.confirm`. `repairHistory()` guarantees every tool call has a matching result, so Stop never leaves the conversation in a state the API rejects.
 
 ## Agents runner — `Session.runAgent` in `lib/engine.js`
 
@@ -81,7 +96,10 @@ The manifest carries a fixed public `key`, so the extension has the same id (`hd
 | `lib/llm.js` | Streaming OpenAI-compatible client with retries |
 | `lib/files.js` | CSV/Excel/PDF/Word/text builders and parsers |
 | `lib/agents.js`, `lib/skills.js`, `lib/memory.js` | Saved agents, skills and memories |
-| `lib/sync.js` | Chrome Sync |
+| `lib/sync.js` | Chrome Sync (memories, skills, agents, playbooks, settings) |
+| `lib/playbooks.js` | Built-in and learned site playbooks |
+| `lib/schedule.js` | Scheduled runs (chrome.alarms) |
+| `lib/pdftext.js` | PDF text via PDF.js (`vendor/pdfjs`) in extension pages |
 | `lib/store.js`, `lib/cloud.js` | History in IndexedDB and Supabase |
 | `lib/settings.js`, `lib/pricing.js` | Defaults, validation, cost maths |
 | `lib/voice.js`, `lib/recorder.js`, `lib/sound.js` | Voice input, Whisper recording, alarm sounds |

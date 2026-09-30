@@ -1,3 +1,4 @@
+import './_setup.mjs';
 import { fileURLToPath } from 'node:url';
 import http from 'node:http';
 import { chromium } from 'playwright';
@@ -141,7 +142,7 @@ panel.on('console', m => { if (m.type() === 'error') errors.push(m.text()); });
 await panel.goto(`chrome-extension://${extId}/permission.html`);
 const webTabId = await panel.evaluate(async () => (await chrome.tabs.query({})).find(t => !(t.url || '').startsWith('chrome-extension'))?.id);
 await panel.goto(`chrome-extension://${extId}/sidepanel.html?tab=${webTabId}`);
-await panel.evaluate(() => chrome.storage.local.set({ apiKey: 'x', baseUrl: 'http://localhost:8770/v1', model: 'deepseek-flash', repeatAlarm: true, notify: true }));
+await panel.evaluate(() => chrome.storage.local.set({ apiKey: 'x', verifyDone: false, baseUrl: 'http://localhost:8770/v1', model: 'deepseek-flash', repeatAlarm: true, notify: true }));
 await panel.reload();
 await panel.screenshot({ path: `${OUT}/0-empty.png` });
 

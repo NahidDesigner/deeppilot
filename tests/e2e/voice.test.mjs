@@ -1,3 +1,4 @@
+import './_setup.mjs';
 import { fileURLToPath } from 'node:url';
 import http from 'node:http';
 import { chromium } from 'playwright';
@@ -23,7 +24,7 @@ const extId=sw.url().split('/')[2];
 const web=ctx.pages()[0]; await web.goto(`http://localhost:${PORT}/x`);
 const v=await ctx.newPage(); await v.setViewportSize({width:400,height:800}); const errors=[]; v.on('pageerror',e=>errors.push(String(e)));
 await v.goto(`chrome-extension://${extId}/permission.html`);
-await v.evaluate(()=>chrome.storage.local.set({apiKey:'x',baseUrl:'http://localhost:8774/v1',vision:false,notify:false,repeatAlarm:false,voiceEngine:'whisper',whisperKey:'gsk_test',whisperUrl:'http://localhost:8774/audio/transcriptions',voiceLang:'en-IN',voiceWords:'Nahid Web Studio, Coolify'}));
+await v.evaluate(()=>chrome.storage.local.set({apiKey:'x',verifyDone:false,baseUrl:'http://localhost:8774/v1',vision:false,notify:false,repeatAlarm:false,voiceEngine:'whisper',whisperKey:'gsk_test',whisperUrl:'http://localhost:8774/audio/transcriptions',voiceLang:'en-IN',voiceWords:'Nahid Web Studio, Coolify'}));
 const tabId=await v.evaluate(async()=>(await chrome.tabs.query({})).find(t=>t.url.startsWith('http'))?.id);
 await v.goto(`chrome-extension://${extId}/sidepanel.html?tab=${tabId}`);
 await v.click('#micBtn'); await v.waitForTimeout(1800);

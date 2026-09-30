@@ -411,7 +411,7 @@ function applyConfirm() {
       if (!row) {
         const r = el('div', 'row');
         const mk = (label, cls, choice) => { const b = el('button', 'btn ' + cls + ' small-btn', label); b.type = 'button'; b.onclick = () => { r.remove(); cmd('confirm', { choice }); }; return b; };
-        r.append(mk('Deny', 'ghost', 'deny'), mk('Allow all for this task', 'ghost', 'all'), mk('Allow', 'primary', 'allow'));
+        r.append(mk('Deny', 'ghost', 'deny'), mk('Always on this site', 'ghost', 'site'), mk('Allow all for this task', 'ghost', 'all'), mk('Allow', 'primary', 'allow'));
         node.appendChild(r);
         scrollDown();
       }
@@ -640,8 +640,15 @@ async function readAttachment(file) {
       return { ...base, text, dataUrl };
     } catch (e) { return { ...base, dataUrl, note: 'This Word file could not be read' }; }
   }
-  const note = (file.type || '').startsWith('image/') ? 'An image — DeepPilot cannot look at attached images yet'
-    : ext === 'pdf' ? 'A PDF — its text cannot be read yet; paste the text if the agent needs it' : 'A binary file';
+  if (ext === 'pdf') {
+    try {
+      const { pdfToText } = await import('./lib/pdftext.js');
+      const r = await pdfToText(await file.arrayBuffer(), { maxChars: 120000 });
+      if (r.text.replace(/--- Page \d+ of \d+ ---/g, '').trim().length > 20) return { ...base, text: r.text, dataUrl, pages: r.pages };
+      return { ...base, dataUrl, note: 'A scanned PDF with no text layer — the agent can upload it but not read it' };
+    } catch (e) { return { ...base, dataUrl, note: 'This PDF could not be read' }; }
+  }
+  const note = (file.type || '').startsWith('image/') ? 'An image — DeepPilot cannot look at attached images yet' : 'A binary file';
   return { ...base, dataUrl, note };
 }
 async function addFiles(list) {
@@ -667,7 +674,7 @@ function renderAttachments() {
     const nm = el('span', 'an', a.name);
     nm.title = a.note || a.name;
     chip.appendChild(nm);
-    chip.appendChild(el('span', 'as', a.loading ? 'reading…' : a.rows != null ? `${a.rows} rows` : fmtSize(a.size)));
+    chip.appendChild(el('span', 'as', a.loading ? 'reading…' : a.rows != null ? `${a.rows} rows` : a.pages ? `${a.pages} page${a.pages === 1 ? '' : 's'}` : fmtSize(a.size)));
     const x = el('button');
     x.type = 'button';
     x.title = `Remove ${a.name}`;
@@ -905,7 +912,8 @@ function showView(id) {
   if (changed) { const v = $(id); v.classList.remove('view-in'); void v.offsetWidth; v.classList.add('view-in'); }
   if (id === 'historyView') loadHistory();
   if (id === 'settings') fillSettings();
-  if (id === 'memoryPanel') renderMemories();
+  if (id === 'memoryPanel') { renderMemories(); renderPlaybooks(); }
+  if (id === 'agentsPanel') renderSchedules();
   if (id === 'skillsPanel') renderSkills();
   if (id === 'agentsPanel') renderAgents();
 }
@@ -1070,6 +1078,7 @@ function renderSkills() {
     const acts = el('div', 'acts');
     acts.appendChild(actBtn('play', 'Run', `Run /${sk.name}`, () => { input.value = `/${sk.name} `; showView('chatView'); input.focus(); }, 'primary'));
     acts.appendChild(actBtn('pencil', 'Edit', `Edit /${sk.name}`, () => openSkillForm(sk)));
+    acts.appendChild(actBtn('clock', 'Schedule', `Run /${sk.name} automatically`, () => openScheduleForm({ text: `/${sk.name}`, name: sk.description || sk.name })));
     acts.appendChild(el('span', 'spacer'));
     acts.appendChild(actBtn('trash', 'Delete', `Delete /${sk.name}`, e => confirmDelete(e.currentTarget, async () => { await deleteSkill(sk.id); refreshSkills(); })));
     li.appendChild(acts);
@@ -1112,6 +1121,7 @@ chrome.storage.onChanged.addListener((changes, area) => {
   if (changes.skills) refreshSkills();
   if (changes.agents) loadAgents().then(a => { agents = a; if (!$('agentsPanel').hidden) renderAgents(); });
   if (changes.memories && !$('memoryPanel').hidden) renderMemories();
+  if (changes.playbooks && !$('memoryPanel').hidden) renderPlaybooks();
 });
 
 // ---------- agents panel ----------
@@ -1135,6 +1145,7 @@ function renderAgents() {
     const acts = el('div', 'acts');
     acts.appendChild(actBtn('play', 'Run', `Run ${ag.title}`, () => openRunForm(ag), 'primary'));
     acts.appendChild(actBtn('pencil', 'Edit', `Edit ${ag.title}`, () => openAgentForm(ag)));
+    acts.appendChild(actBtn('clock', 'Schedule', `Run ${ag.title} automatically`, () => openScheduleForm({ text: `/${ag.name}${(ag.inputs || []).map(i => i.default ? ` ${i.name}="${i.default}"` : '').join('')}`, name: ag.title })));
     acts.appendChild(actBtn('copy', 'Duplicate', `Duplicate ${ag.title}`, async () => { try { await saveAgent({ ...ag, id: undefined, name: ag.name + '-copy', title: ag.title + ' (copy)' }); } catch (e) { alert(e.message); } }));
     acts.appendChild(el('span', 'spacer'));
     acts.appendChild(actBtn('trash', 'Delete', `Delete ${ag.title}`, e => confirmDelete(e.currentTarget, () => deleteAgent(ag.id))));
@@ -1395,6 +1406,99 @@ async function renderMemories() {
     ul.appendChild(li);
   }
 }
+// ---------- scheduled runs ----------
+async function renderSchedules() {
+  const { loadSchedules, deleteSchedule, saveSchedule, describe, nextRun } = await import('./lib/schedule.js');
+  const ul = $('scheduleList');
+  ul.innerHTML = '';
+  const list = await loadSchedules();
+  if (!list.length) { ul.appendChild(emptyCard('Nothing scheduled. Use ⏱ Schedule on an agent or skill, or New schedule below.')); return; }
+  for (const sc of list.sort((a, b) => (nextRun(a) || 9e15) - (nextRun(b) || 9e15))) {
+    const li = el('li', 'card sched-card' + (sc.enabled ? '' : ' off'));
+    const top = el('div', 'card-top');
+    const ic = el('span', 'card-ic'); ic.appendChild(icon('clock')); top.appendChild(ic);
+    const main = el('div', 'card-main');
+    main.appendChild(el('b', null, sc.name));
+    const nx = nextRun(sc);
+    main.appendChild(el('div', 'card-cmd', `${describe(sc).toUpperCase()}${nx ? ` · NEXT ${new Date(nx).toLocaleString([], { weekday: 'short', hour: '2-digit', minute: '2-digit' }).toUpperCase()}` : ' · PAUSED'}`));
+    main.appendChild(el('p', 'card-desc', sc.text.slice(0, 140)));
+    if (sc.lastRun) main.appendChild(el('div', 'card-cmd muted', `LAST RUN ${new Date(sc.lastRun).toLocaleString([], { dateStyle: 'short', timeStyle: 'short' }).toUpperCase()}`));
+    top.appendChild(main);
+    li.appendChild(top);
+    const acts = el('div', 'card-acts');
+    acts.appendChild(actBtn('play', 'Run now', `Run ${sc.name} now`, () => { cmd('send', { text: sc.text }); showView('chatView'); }, 'primary'));
+    acts.appendChild(actBtn(sc.enabled ? 'pause' : 'play', sc.enabled ? 'Pause' : 'Resume', sc.enabled ? 'Pause this schedule' : 'Resume this schedule', async () => { try { await saveSchedule({ ...sc, enabled: !sc.enabled, onceAt: sc.onceAt }); } catch (e) { alert(e.message); } renderSchedules(); }));
+    acts.appendChild(actBtn('pencil', 'Edit', `Edit ${sc.name}`, () => openScheduleForm(sc)));
+    if (sc.lastConv) acts.appendChild(actBtn('history', 'Last result', 'Open the chat of the last run', () => { cmd('openConv', { id: sc.lastConv }); showView('chatView'); }));
+    acts.appendChild(actBtn('trash', 'Delete', `Delete ${sc.name}`, e => confirmDelete(e.currentTarget, async () => { await deleteSchedule(sc.id); renderSchedules(); })));
+    li.appendChild(acts);
+    ul.appendChild(li);
+  }
+}
+function syncScheduleFields() {
+  const r = $('scRepeat').value;
+  $('scTimeWrap').hidden = r === 'hourly' || r === 'once';
+  $('scMinuteWrap').hidden = r !== 'hourly';
+  $('scOnceWrap').hidden = r !== 'once';
+  $('scDayWrap').hidden = r !== 'weekly';
+}
+function openScheduleForm(sc = {}) {
+  if ($('agentsPanel').hidden) openPanel('agents');
+  $('scId').value = sc.id || '';
+  $('scText').value = sc.text || '';
+  $('scName').value = sc.name && sc.name !== sc.text ? sc.name : '';
+  $('scRepeat').value = sc.repeat || 'daily';
+  $('scTime').value = sc.time || '09:00';
+  $('scMinute').value = sc.minute ?? 0;
+  $('scDay').value = String(sc.day ?? 1);
+  const soon = new Date(Date.now() + 3600e3); soon.setMinutes(0, 0, 0);
+  const local = d => new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+  $('scOnce').value = sc.onceAt ? local(new Date(sc.onceAt)) : local(soon);
+  $('scheduleFormTitle').textContent = sc.id ? `Edit ${sc.name}` : 'New schedule';
+  $('scMsg').textContent = '';
+  syncScheduleFields();
+  $('scheduleForm').open = true;
+  $('scheduleForm').scrollIntoView({ block: 'nearest' });
+  $('scText').focus();
+}
+$('scRepeat').addEventListener('change', syncScheduleFields);
+$('scCancel').addEventListener('click', () => { $('scheduleForm').open = false; });
+$('scSave').addEventListener('click', async () => {
+  const { saveSchedule, describe } = await import('./lib/schedule.js');
+  try {
+    const sc = await saveSchedule({
+      id: $('scId').value || undefined, text: $('scText').value, name: $('scName').value, repeat: $('scRepeat').value,
+      time: $('scTime').value, minute: $('scMinute').value, day: $('scDay').value,
+      onceAt: $('scRepeat').value === 'once' ? new Date($('scOnce').value).toISOString() : null,
+    });
+    $('scMsg').textContent = `Saved — runs ${describe(sc)}.`;
+    renderSchedules();
+    setTimeout(() => { $('scheduleForm').open = false; }, 1200);
+  } catch (e) { $('scMsg').textContent = 'Error: ' + e.message; }
+});
+chrome.storage.onChanged.addListener((ch, area) => { if (area === 'local' && ch.schedules && !$('agentsPanel').hidden) renderSchedules(); });
+
+async function renderPlaybooks() {
+  const { loadUserPlaybooks, deleteUserPlaybook, BUILTIN } = await import('./lib/playbooks.js');
+  $('builtinPlaybooks').textContent = BUILTIN.map(b => b.name).join(' · ');
+  const ul = $('playbookList');
+  ul.innerHTML = '';
+  const list = await loadUserPlaybooks();
+  if (!list.length) { ul.appendChild(emptyCard('No learned notes yet. After a task on a site, DeepPilot saves what it learned here.')); return; }
+  for (const p of list.sort((a, b) => b.updatedAt - a.updatedAt)) {
+    const li = el('li');
+    li.appendChild(el('span', 'mem-id', p.domain));
+    li.appendChild(el('span', 't mem-t', p.text));
+    const del = el('button', 'icon-btn sm danger-hover');
+    del.appendChild(icon('trash'));
+    del.type = 'button';
+    del.title = `Delete notes for ${p.domain}`;
+    del.setAttribute('aria-label', `Delete notes for ${p.domain}`);
+    del.onclick = async () => { await deleteUserPlaybook(p.id); renderPlaybooks(); };
+    li.appendChild(del);
+    ul.appendChild(li);
+  }
+}
 $('addMemoryBtn').addEventListener('click', async () => {
   const t = $('memoryInput').value.trim();
   if (!t) return;
@@ -1403,12 +1507,24 @@ $('addMemoryBtn').addEventListener('click', async () => {
 });
 
 // ---------- settings ----------
-const FIELDS = ['apiKey', 'model', 'baseUrl', 'maxSteps', 'vision', 'smartVision', 'confirmRisky', 'showCursor', 'autoParallel', 'maxParallel', 'chromeSync', 'syncKeys', 'soundDone', 'soundAsk', 'soundError', 'volume',
+const FIELDS = ['blockedDomains', 'apiKey', 'model', 'baseUrl', 'plannerModel', 'plannerBaseUrl', 'plannerKey', 'verifyDone', 'maxSteps', 'vision', 'smartVision', 'confirmRisky', 'showCursor', 'autoParallel', 'maxParallel', 'chromeSync', 'syncKeys', 'soundDone', 'soundAsk', 'soundError', 'volume',
   'repeatAlarm', 'notify', 'voiceLang', 'voiceEngine', 'whisperKey', 'whisperUrl', 'whisperModel', 'voiceWords', 'priceHit', 'priceMiss', 'priceOut', 'offPeak', 'taskBudget', 'supabaseUrl', 'supabaseKey'];
 for (const sel of document.querySelectorAll('.sound-select')) {
   for (const [v, label] of Object.entries(SOUNDS)) { const o = el('option', null, label); o.value = v; sel.appendChild(o); }
 }
+async function renderTrusted() {
+  const { trustedSites = [] } = await chrome.storage.local.get('trustedSites');
+  const line = $('trustedSitesLine');
+  line.innerHTML = '';
+  if (!trustedSites.length) { line.textContent = 'Sites where you chose "Always on this site" will be listed here.'; return; }
+  line.append(document.createTextNode(`Always allowed without asking: ${trustedSites.join(', ')} `));
+  const b = el('button', 'link-btn', 'Reset');
+  b.type = 'button';
+  b.onclick = async () => { await chrome.storage.local.set({ trustedSites: [] }); renderTrusted(); };
+  line.appendChild(b);
+}
 function fillSettings() {
+  renderTrusted();
   for (const k of FIELDS) {
     const f = $('s_' + k);
     if (!f) continue;
@@ -1698,7 +1814,7 @@ $('syncClear').addEventListener('click', async () => {
 $('backupExport').addEventListener('click', async () => {
   const d = await chrome.storage.local.get(['memories', 'skills', 'agents']);
   const cfg = { ...settings };
-  for (const k of ['apiKey', 'whisperKey', 'supabaseKey']) delete cfg[k];
+  for (const k of ['apiKey', 'whisperKey', 'supabaseKey', 'plannerKey']) delete cfg[k];
   const data = { app: 'DeepPilot', kind: 'backup', version: chrome.runtime.getManifest().version, exportedAt: new Date().toISOString(), memories: d.memories || [], skills: d.skills || [], agents: d.agents || [], settings: cfg };
   const a = document.createElement('a');
   a.href = URL.createObjectURL(new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' }));
@@ -1727,7 +1843,7 @@ $('backupFile').addEventListener('change', async e => {
     }
     const byName = (a, bb) => { const map = new Map((a || []).map(x => [x.name, x])); for (const x of bb || []) if (x?.name) map.set(x.name, x); return [...map.values()]; };
     const cfg = { ...(b.settings || {}) };
-    for (const k of ['apiKey', 'whisperKey', 'supabaseKey']) delete cfg[k];
+    for (const k of ['apiKey', 'whisperKey', 'supabaseKey', 'plannerKey']) delete cfg[k];
     await chrome.storage.local.set({ memories: mem, skills: byName(cur.skills, b.skills), agents: byName(cur.agents, b.agents) });
     if (Object.keys(cfg).length) await saveSettings(cfg);
     $('syncMsg').textContent = `Restored ${(b.memories || []).length} memories, ${(b.skills || []).length} skills, ${(b.agents || []).length} agents and your settings.`;

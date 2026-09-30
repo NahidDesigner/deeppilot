@@ -1,3 +1,4 @@
+import './_setup.mjs';
 import { fileURLToPath } from 'node:url';
 // Chrome Sync between two "computers" (two profiles). The test plays the role of Chrome's sync server
 // by copying the dp1| records from one profile's chrome.storage.sync to the other's.

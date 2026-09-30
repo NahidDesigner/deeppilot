@@ -253,6 +253,24 @@
         </div>
         <p id="agMsg" class="form-msg" role="status"></p>
       </details>
+      <div class="sub-head sched-head"><b>Scheduled runs</b><span>tasks, /skills or /agents on autopilot</span></div>
+      <ul id="scheduleList" class="cards sched"></ul>
+      <details id="scheduleForm" class="builder">
+        <summary><svg class="ic"><use href="#i-clock"/></svg><span id="scheduleFormTitle">New schedule</span></summary>
+        <input id="scId" type="hidden">
+        <label class="field">What to run <textarea id="scText" rows="2" placeholder="/linkedin-thank-you  —  or any task, e.g. Check yesterday's Meta ads spend and give me a summary"></textarea></label>
+        <label class="field">Name <span class="opt">optional</span><input id="scName" type="text" placeholder="Morning LinkedIn welcomes"></label>
+        <div class="grid2">
+          <label class="field">Repeat <select id="scRepeat"><option value="daily">Every day</option><option value="weekdays">Weekdays (Mon–Fri)</option><option value="weekly">Every week</option><option value="hourly">Every hour</option><option value="once">Once</option></select></label>
+          <label class="field" id="scTimeWrap">Time <input id="scTime" type="time" value="09:00"></label>
+          <label class="field" id="scMinuteWrap" hidden>Minute past the hour <input id="scMinute" type="number" min="0" max="59" value="0"></label>
+          <label class="field" id="scOnceWrap" hidden>Date and time <input id="scOnce" type="datetime-local"></label>
+        </div>
+        <label class="field" id="scDayWrap" hidden>Day <select id="scDay"><option value="1">Monday</option><option value="2">Tuesday</option><option value="3">Wednesday</option><option value="4">Thursday</option><option value="5">Friday</option><option value="6">Saturday</option><option value="0">Sunday</option></select></label>
+        <p class="help">Runs in a background tab while Chrome is open, and you get a notification when it's done. If the computer was off, a missed run happens at the next start (up to 12 hours late).</p>
+        <div class="row-end"><button id="scCancel" class="btn ghost" type="button">Cancel</button><button id="scSave" class="btn primary" type="button">Save schedule</button></div>
+        <p id="scMsg" class="form-msg" role="status"></p>
+      </details>
       <div class="page-foot">
         <button id="agImport" class="link-btn" type="button"><svg class="ic"><use href="#i-upload"/></svg>Import</button>
         <button id="agExport" class="link-btn" type="button"><svg class="ic"><use href="#i-download"/></svg>Export</button>
@@ -303,6 +321,9 @@
         <div class="row-end"><button id="addMemoryBtn" class="btn primary small-btn" type="button"><svg class="ic"><use href="#i-plus"/></svg><span>Add memory</span></button></div>
       </div>
       <ul id="memoryList" class="cards mem"></ul>
+      <div class="sub-head pb-head"><b>Site playbooks</b><span>know-how per website · built-in + learned</span></div>
+      <p class="help">DeepPilot adds these notes automatically when it works on the site. It also saves what it learns on a site (you can delete any note). Built-in playbooks: <span id="builtinPlaybooks"></span>.</p>
+      <ul id="playbookList" class="cards mem"></ul>
     </section>
 
     <!-- ============ SETTINGS ============ -->
@@ -322,6 +343,13 @@
           <label class="field">API base URL <input id="s_baseUrl" type="text" spellcheck="false"></label>
         </div>
         <div class="row-end"><button id="testKeyBtn" class="btn ghost small-btn" type="button"><svg class="ic"><use href="#i-activity"/></svg><span>Test connection</span></button></div>
+        <div class="sub-head"><b>Planner model</b><span>optional · a stronger model for hard sites</span></div>
+        <p class="help">The main model does the clicking. A stronger planner (any OpenAI-compatible model — e.g. a bigger DeepSeek model, or one via OpenRouter) writes the plan, re-plans every 10 steps and after repeated failures, and checks the result. Leave empty to use the main model for the final check only.</p>
+        <label class="field">Planner model <span class="opt">optional</span><input id="s_plannerModel" type="text" spellcheck="false" placeholder="e.g. deepseek-reasoner"></label>
+        <div class="grid2">
+          <label class="field">Planner base URL <span class="opt">blank = same</span><input id="s_plannerBaseUrl" type="text" spellcheck="false" placeholder="https://openrouter.ai/api/v1"></label>
+          <label class="field">Planner API key <span class="opt">blank = same</span><input id="s_plannerKey" type="password" spellcheck="false" autocomplete="off"></label>
+        </div>
       </section>
 
       <section class="group">
@@ -339,7 +367,10 @@
         <label class="check"><input id="s_vision" type="checkbox"><span>Send screenshots to the model (vision)</span></label>
         <label class="check sub-check"><input id="s_smartVision" type="checkbox"><span>Only when the page changes — saves tokens<small class="field-hint">The agent can still ask for a screenshot any time it needs to see the page.</small></span></label>
         <label class="check"><input id="s_confirmRisky" type="checkbox"><span>Ask me before buying, sending, deleting or posting</span></label>
+        <label class="field">Never open or act on these sites <span class="opt">one domain per line</span><textarea id="s_blockedDomains" rows="2" spellcheck="false" placeholder="mybank.com&#10;paypal.com"></textarea></label>
+        <p class="help" id="trustedSitesLine"></p>
         <label class="check"><input id="s_showCursor" type="checkbox"><span>Show the agent's cursor on the page</span></label>
+        <label class="check"><input id="s_verifyDone" type="checkbox"><span>Check the result before finishing<small class="field-hint">An independent review compares your request with what was done, so the agent doesn't stop half-way. Costs one short extra call per task.</small></span></label>
         <label class="check"><input id="s_autoParallel" type="checkbox"><span>Let DeepPilot split work across parallel tabs by itself<small class="field-hint">When a task has several independent items (e.g. audit 10 websites) it works on them at the same time. Never used for messaging, posting or LinkedIn/Facebook.</small></span></label>
         <label class="field">Max parallel tabs <input id="s_maxParallel" type="number" min="2" max="10"></label>
       </section>

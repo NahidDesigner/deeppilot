@@ -2,6 +2,32 @@
 
 All notable changes to DeepPilot. The format follows [Keep a Changelog](https://keepachangelog.com/) and versions follow [Semantic Versioning](https://semver.org/).
 
+## [2.5.0] — 2026-10-01
+A results-focused release, based on a feature-by-feature audit of Claude in Chrome, Nanobrowser, browser-use, BrowserOS, OpenBrowse, Pie and others ([docs/AUDIT.md](docs/AUDIT.md)).
+### Added
+- **Page perception:**
+  - `*` markers for elements that are new since the last action.
+  - Row/card context for repeated or generic controls (`— in: "A · www · …"`).
+  - `TEXT IN VIEW` with headings, ALERT/DIALOG lines, visible table rows and short values.
+  - Screens above/below, plus required/invalid/selected/pressed states.
+- **Iframes**, including cross-origin: read, type, click and page text inside frames (ids 1000·k+).
+- **New tools:** `find` (whole page, scrolls to the match), `search_page`, `extract` (question-answering over long pages), `fill_form`, `drag`, double/right `click`, `look` with a zoom region, and `read_pdf`.
+- **Batching:** several actions per step; the rest is skipped when the page address changes.
+- **Check before "done":** an independent review against the task (at most 2 rejections).
+- **Optional planner model** (any OpenAI-compatible model): plans at the start, re-plans every 10 steps and after 3 failures, and does the final check.
+- **Site Playbooks:** 16 built-in (Cloudflare, Meta Ads Manager, cPanel, WordPress/Elementor, Hostinger, GoDaddy, Namecheap, Google Ads/Search Console/Analytics, LinkedIn, Facebook, Gmail, Canva, Google Sheets, Shopify). The agent also saves learned notes per site, which sync between computers.
+- **Scheduled runs:** once, hourly, daily, weekdays or weekly, for any task, skill or agent.
+- **PDF reading** with PDF.js, for attachments and links.
+- **Safety:**
+  - page text fenced with a random nonce;
+  - approval for Save/Publish/Apply/Delete on high-stakes dashboards;
+  - "Always on this site";
+  - a domain blocklist.
+- **Recovery nudges** when the page hasn't changed for 5 steps or 3 actions fail in a row.
+- New end-to-end suites: `dashboards` (DNS table, cross-origin iframe panel, long page) and `brains` (planner, playbooks, blocklist, trusted sites, PDFs, schedules).
+### Changed
+- The page view is about 12% larger per step, for about 6% more cost on the benchmark task. The expected payoff is far fewer steps on real dashboards.
+
 ## [2.4.2] — 2026-09-30
 ### Added
 - **Designed PDFs.** Every PDF DeepPilot creates now has a dark title band, accent section headings, **bold** inside text, styled tables with zebra rows, highlighted callouts and "Page x of y" footers.

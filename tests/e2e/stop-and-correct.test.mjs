@@ -1,3 +1,4 @@
+import './_setup.mjs';
 import { fileURLToPath } from 'node:url';
 // Stop mid-tool-call, then send a correction: history must stay valid (DeepSeek-strict mock).
 import http from 'node:http';
@@ -29,7 +30,7 @@ const extId=sw.url().split('/')[2];
 const web=ctx.pages()[0]; await web.goto(`${B}/a`);
 const v=await ctx.newPage(); const errors=[]; v.on('pageerror',e=>errors.push(String(e)));
 await v.goto(`chrome-extension://${extId}/permission.html`);
-await v.evaluate(()=>chrome.storage.local.set({apiKey:'x',baseUrl:'http://localhost:8773/v1',notify:false,repeatAlarm:false,vision:false}));
+await v.evaluate(()=>chrome.storage.local.set({apiKey:'x',verifyDone:false,baseUrl:'http://localhost:8773/v1',notify:false,repeatAlarm:false,vision:false}));
 const tabId=await v.evaluate(async()=>(await chrome.tabs.query({})).find(t=>t.url.startsWith('http'))?.id);
 await v.goto(`chrome-extension://${extId}/sidepanel.html?tab=${tabId}`);
 const send=async t=>{await v.fill('#input',t); await v.evaluate(()=>document.getElementById('form').requestSubmit());};

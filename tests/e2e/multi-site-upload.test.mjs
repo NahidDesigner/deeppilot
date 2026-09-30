@@ -1,3 +1,4 @@
+import './_setup.mjs';
 import { fileURLToPath } from 'node:url';
 import http from 'node:http';
 import { chromium } from 'playwright';
@@ -28,7 +29,7 @@ let calls = 0; const st = {}; const seen = {};
 const call = (name, args, content = '') => ({ role: 'assistant', content, tool_calls: [{ id: 'c' + calls, type: 'function', function: { name, arguments: JSON.stringify(args) } }] });
 const lastTool = m => ([...m].reverse().find(x => x.role === 'tool') || {}).content || '';
 const stateText = m => { const u = [...m].reverse().find(x => x.role === 'user'); return Array.isArray(u.content) ? u.content[0].text : u.content; };
-const idOf = (state, re) => { const l = state.split('\n').find(x => re.test(x)); return l ? parseInt(l.match(/^\[(\d+)\]/)[1], 10) : -1; };
+const idOf = (state, re) => { const l = state.split('\n').find(x => re.test(x)); return l ? parseInt(l.match(/^\*?\[(\d+)\]/)[1], 10) : -1; };
 
 function brain(messages) {
   const task = [...messages].reverse().find(m => m.role === 'user' && typeof m.content === 'string' && m.content.startsWith('TASK:')).content;
@@ -96,7 +97,7 @@ panel.on('console', m => { if (m.type() === 'error') errors.push(m.text()); });
 await panel.goto(`chrome-extension://${extId}/permission.html`);
 const webTabId = await panel.evaluate(async () => (await chrome.tabs.query({})).find(t => !(t.url || '').startsWith('chrome-extension'))?.id);
 await panel.goto(`chrome-extension://${extId}/sidepanel.html?tab=${webTabId}`);
-await panel.evaluate(() => chrome.storage.local.set({ apiKey: 'x', baseUrl: 'http://localhost:8771/v1', repeatAlarm: false, notify: false }));
+await panel.evaluate(() => chrome.storage.local.set({ apiKey: 'x', verifyDone: false, baseUrl: 'http://localhost:8771/v1', repeatAlarm: false, notify: false }));
 await panel.reload();
 const waitFinals = n => panel.waitForFunction(k => document.querySelectorAll('.msg.final, .msg.error').length >= k, n, { timeout: 90000 });
 const send = async t => { await panel.fill('#input', t); await panel.evaluate(() => document.getElementById('form').requestSubmit()); };

@@ -8,6 +8,10 @@ Everything DeepPilot can do, and how to get the best out of it. New here? Start 
 - [Files: attach and create](#files)
 - [Parallel tabs](#parallel-tabs)
 - [Agents](#agents)
+- [Scheduled runs](#scheduled-runs)
+- [Site playbooks](#site-playbooks)
+- [Planner model & the check before "done"](#planner-model--the-check-before-done)
+- [Safety controls](#safety-controls)
 - [Skills](#skills)
 - [Memory](#memory)
 - [History and the full-page view](#history-and-the-full-page-view)
@@ -74,6 +78,66 @@ Parallel tabs make work **faster, not cheaper**: the total cost is about the sam
 
 Agents are saved multi-stage workflows that keep going until the job is done. They're the best way to run the same big job again and again. **[Read the Agents guide →](agents.md)**
 
+## What the agent sees and can do
+
+Each step the agent gets a map of the page, much like a person scanning it:
+
+- **Every control with its context.** For example, `[14] <a> "Edit" — in: "A · www · 192.0.2.1 · Proxied"`, so it knows which of many identical buttons to press.
+- **`*` marks what's new** since its last action: the dialog that opened, the menu that appeared.
+- **`TEXT IN VIEW`** shows headings, **ALERT** lines (errors like "Invalid value", confirmations like "Saved"), open dialogs, visible table rows and short values (prices, statuses, counts).
+- **Iframes** (cPanel, payment forms, embedded editors) are listed under "INSIDE FRAME" and used like the rest of the page.
+
+Its extra tools:
+
+- **find**: jumps to a control anywhere on the page.
+- **search_page**: like Ctrl+F.
+- **extract**: answers a question from a long page or report.
+- **fill_form**: fills many fields at once.
+- **drag**: drag and drop.
+- **double/right click**.
+- **look with a region**: zooms into small print or icons.
+- **read_pdf**: the PDF in the tab, a PDF link, or an attached PDF.
+
+## Scheduled runs
+
+**Agents** tab → **Scheduled runs**. Use **⏱ Schedule** on any agent or skill card, or **New schedule** for any task.
+
+| Setting | What it does |
+|---|---|
+| **What to run** | A task in plain words, a `/skill` or a `/agent` command with its inputs |
+| **Repeat** | Once, every hour, every day, weekdays, or every week at a time you pick |
+
+Runs happen in a background tab **while Chrome is open**. Each run is saved in History (titled "⏰ name") and you get a notification. If the computer was off, a missed run happens when Chrome starts again, up to 12 hours late. Each schedule has **Run now**, **Pause/Resume**, **Edit** and **Last result**.
+
+## Site playbooks
+
+Built-in know-how for common dashboards is added automatically when the agent reaches the site:
+
+- Cloudflare
+- Meta Ads Manager
+- cPanel
+- WordPress and Elementor
+- Hostinger, GoDaddy, Namecheap
+- Google Ads, Search Console, Analytics
+- LinkedIn, Facebook, Gmail
+- Canva, Google Sheets
+- Shopify
+
+After a task, the agent can save **its own notes** for a site (where a setting lives, a step that worked). Next time it's on that site, it uses them. See and delete them in **Memory → Site playbooks**. They sync between your computers with Chrome Sync.
+
+## Planner model & the check before "done"
+
+- **Check the result before finishing** (on by default): before reporting "done", a separate review compares every part of your request with what was actually done and what the page shows. If something is missing, the agent continues. The review rejects at most twice, so it can't loop, and costs one short extra call per task.
+- **Planner model** (optional, **Settings → DeepSeek → Planner model**): a stronger model for hard sites. It writes the plan at the start, re-plans every 10 steps and after 3 failed actions in a row, and does the final check. The main model keeps doing the clicking, so costs stay low. It can be any OpenAI-compatible model, with its own base URL and key (e.g. via OpenRouter); leave the base URL and key blank to reuse the main ones.
+
+## Safety controls
+
+- **Ask before buying, sending, deleting or posting** (on by default).
+- **High-stakes dashboards:** on DNS, ad-spend, hosting and payment dashboards (Cloudflare, Ads Manager, Google Ads, cPanel, hosting panels, Stripe, PayPal, cloud consoles), **Save / Publish / Apply / Delete** also need your OK.
+- **Your options on each approval card:** **Allow**, **Allow all for this task**, **Always on this site** (remembered; reset in Settings), or **Deny**.
+- **Never open or act on these sites:** a blocklist in Settings.
+- **Page text is fenced:** everything read from a page is wrapped in markers with a random code, and the agent treats it as data, never as instructions.
+
 ## Skills
 
 A skill is a saved task you run again with `/`. When a task finishes, click **Save as skill** under the result, or use the **Skills** tab. Type `/` in the message box to pick one. Anything after the name is extra input for that run: `/daily-report focus on mobile traffic`.
@@ -113,10 +177,13 @@ When a task finishes, needs you, or stops because of a problem, DeepPilot plays 
 | Group | Setting | Default |
 |---|---|---|
 | DeepSeek | API key · Model · Base URL | — · `deepseek-flash` · `https://api.deepseek.com` |
+| | Planner model · planner base URL · planner key | off (optional) |
 | Appearance | Theme: Daylight · Flight deck · System | Daylight |
 | Agent behaviour | Max steps per task | 100 |
 | | Send screenshots (vision) · only when the page changes | on · on |
+| | Check the result before finishing | on |
 | | Ask before buying, sending, deleting or posting | on |
+| | Never open or act on these sites (blocklist) · always-allowed sites | empty |
 | | Show the agent's cursor | on |
 | | Split work across parallel tabs by itself · Max parallel tabs | on · 4 |
 | Sounds & alerts | Sound per event · volume · repeat · desktop notifications | on |

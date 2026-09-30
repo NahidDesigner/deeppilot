@@ -1,3 +1,4 @@
+import './_setup.mjs';
 import { fileURLToPath } from 'node:url';
 // Steering: "Tell it now" while running (agent + normal task), "Just chat" while paused, "Update & resume".
 import http from 'node:http';
@@ -48,7 +49,7 @@ const webp = ctx.pages()[0]; await webp.goto(`${B}/start`);
 const v = await ctx.newPage(); await v.setViewportSize({ width: 400, height: 860 });
 const errors = []; v.on('pageerror', e => errors.push(String(e)));
 await v.goto(`chrome-extension://${extId}/permission.html`);
-await v.evaluate(() => chrome.storage.local.set({ apiKey: 'x', baseUrl: 'http://localhost:8778/v1', vision: false, notify: false, repeatAlarm: false }));
+await v.evaluate(() => chrome.storage.local.set({ apiKey: 'x', verifyDone: false, baseUrl: 'http://localhost:8778/v1', vision: false, notify: false, repeatAlarm: false }));
 await v.evaluate(async () => { const { saveAgent } = await import('./lib/agents.js'); await saveAgent({ title: 'Biz Checker', parallel: 2, stages: [{ title: 'Find', instructions: 'save_items' }, { title: 'Check', instructions: 'check CURRENT ITEM; record_result', forEach: true }, { title: 'Summary', instructions: 'done with summary' }] }); });
 const tabId = await v.evaluate(async () => (await chrome.tabs.query({})).find(t => t.url.startsWith('http'))?.id);
 await v.goto(`chrome-extension://${extId}/sidepanel.html?tab=${tabId}`);
