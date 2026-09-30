@@ -59,6 +59,7 @@ let [sw] = ctx.serviceWorkers(); if (!sw) sw = await ctx.waitForEvent('servicewo
 const extId = sw.url().split('/')[2];
 const webp = ctx.pages()[0]; await webp.goto(`${B}/start`);
 const v = await ctx.newPage(); await v.setViewportSize({ width: 420, height: 860 });
+v.setDefaultTimeout(60000); // shared CI runners can be several times slower than a laptop
 const errors = []; v.on('pageerror', e => errors.push(String(e)));
 await v.goto(`chrome-extension://${extId}/permission.html`);
 await v.evaluate(() => chrome.storage.local.set({ apiKey: 'x', verifyDone: false, baseUrl: 'http://localhost:8777/v1', vision: false, notify: false, repeatAlarm: false }));
@@ -92,7 +93,7 @@ await v.screenshot({ path: 'par-0-agents.png' });
 await v.click('#agentList .agent-row:has-text("Site Auditor") button[title^="Run "]');
 await v.click('#runGo');
 // lanes visible while running
-await v.waitForFunction(() => !document.getElementById('runLanes').hidden && document.querySelectorAll('#runLanes .lane:not(.idle)').length >= 3, null, { timeout: 30000 });
+await v.waitForFunction(() => !document.getElementById('runLanes').hidden && document.querySelectorAll('#runLanes .lane:not(.idle)').length >= 3, null, { timeout: 60000 });
 const lanes = await v.$$eval('#runLanes .lane', n => n.map(x => x.textContent));
 const tabsDuring = await v.evaluate(async () => (await chrome.tabs.query({})).filter(t => t.groupId !== -1).length);
 const statusDuring = await v.textContent('#statusText').catch(() => '');

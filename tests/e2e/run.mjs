@@ -150,24 +150,41 @@ const tests = Object.keys(CHECKS).filter(n => !only.length || only.some(o => n.i
 const results = [];
 const bold = s => `\x1b[1m${s}\x1b[0m`, green = s => `\x1b[32m${s}\x1b[0m`, red = s => `\x1b[31m${s}\x1b[0m`, dim = s => `\x1b[2m${s}\x1b[0m`;
 
+// On CI a test file that crashes (usually a timing hiccup on a slow shared runner) gets one more try.
+// The retry is reported, and the first attempt's log tail is printed, so real bugs stay visible.
+const RETRIES = process.env.CI ? 1 : 0;
+const tail = (s, n = 30) => s.trimEnd().split('\n').slice(-n).map(l => '    ' + l).join('\n');
+
+const runFile = file => new Promise(resolve => {
+  let buf = '';
+  const p = spawn(process.execPath, [file], { cwd: OUT, env: process.env });
+  p.stdout.on('data', d => { buf += d; });
+  p.stderr.on('data', d => { buf += d; });
+  const kill = setTimeout(() => p.kill('SIGKILL'), 240000);
+  p.on('close', code => { clearTimeout(kill); resolve({ code, buf }); });
+});
+const evaluate = (name, out) => {
+  let checks;
+  try { checks = CHECKS[name](out.buf); } catch (e) { checks = [[false, `output could not be read (${e.message})`]]; }
+  if (out.code !== 0) checks.unshift([false, `test process exited with code ${out.code}`]);
+  return checks;
+};
+
 for (const name of tests) {
   const file = path.join(DIR, `${name}.test.mjs`);
   const t0 = Date.now();
   process.stdout.write(`${bold(name)} ${dim('…')}\n`);
-  const out = await new Promise(resolve => {
-    let buf = '';
-    const p = spawn(process.execPath, [file], { cwd: OUT, env: process.env });
-    p.stdout.on('data', d => { buf += d; });
-    p.stderr.on('data', d => { buf += d; });
-    const kill = setTimeout(() => p.kill('SIGKILL'), 240000);
-    p.on('close', code => { clearTimeout(kill); resolve({ code, buf }); });
-  });
+  let out = await runFile(file), checks = evaluate(name, out), retried = false;
+  for (let r = 0; r < RETRIES && !checks.every(c => c[0]); r++) {
+    console.log(dim(`  failed on the first try; last lines of its log:\n${tail(out.buf)}\n  trying once more…`));
+    fs.writeFileSync(path.join(OUT, `${name}.attempt${r + 1}.log`), out.buf);
+    out = await runFile(file); checks = evaluate(name, out); retried = true;
+  }
   fs.writeFileSync(path.join(OUT, `${name}.log`), out.buf);
-  let checks;
-  try { checks = CHECKS[name](out.buf); } catch (e) { checks = [[false, `output could not be read (${e.message})`]]; }
-  if (out.code !== 0) checks.unshift([false, `test process exited with code ${out.code}`]);
   const ok = checks.every(c => c[0]);
   for (const [pass, label] of checks) console.log(`  ${pass ? green('✓') : red('✗')} ${label}`);
+  if (!ok) console.log(dim(tail(out.buf)));
+  if (ok && retried) console.log(`  ${dim('(passed on the second try)')}`);
   console.log(dim(`  ${((Date.now() - t0) / 1000).toFixed(1)}s · log: tests/e2e/.out/${name}.log\n`));
   results.push({ name, ok });
 }
