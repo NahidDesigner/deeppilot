@@ -118,7 +118,8 @@ const conv = await v.evaluate(async () => { const st = await import('./lib/store
 await v.evaluate(async () => { const { saveAgent } = await import('./lib/agents.js'); await saveAgent({ title: 'Li Thanks', parallel: 8, stages: [{ title: 'Find', instructions: 'save_items people' }, { title: 'Message', instructions: 'Send a LinkedIn message to the CURRENT ITEM', forEach: true }] }); });
 await v.click('#newChatBtn'); await v.waitForTimeout(300);
 await v.fill('#input', '/li-thanks'); await v.keyboard.press('Escape'); await v.click('#sendBtn');
-await v.waitForFunction(() => /LANDED/.test(document.getElementById('runMeta').textContent), null, { timeout: 60000 });
+// wait for THIS agent (the card still holds the previous run's text until the new one starts)
+await v.waitForFunction(() => /Li Thanks/.test(document.getElementById('runName').textContent) && /LANDED/.test(document.getElementById('runMeta').textContent), null, { timeout: 90000 });
 const liNote = await v.$$eval('.memnote', n => n.map(x => x.textContent).filter(t => /one at a time/.test(t)));
 console.log(JSON.stringify({ theme, parallelDefault, seqHiddenBefore, seqVisibleAfter, saved, cardCmd, lanes, tabsDuring, statusDuring, paused, tabsPaused, done, conv, maxInflight, liMax, liNote, calls, errors }, null, 1));
 await ctx.close(); server.close();

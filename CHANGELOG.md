@@ -2,6 +2,15 @@
 
 All notable changes to DeepPilot. The format follows [Keep a Changelog](https://keepachangelog.com/) and versions follow [Semantic Versioning](https://semver.org/).
 
+## [2.4.1] — 2026-09-30
+### Fixed
+- **Simple tasks going in circles.** A real LinkedIn run took ~150 steps for a 20-step job. Four fixes:
+  - **No more stale reads.** After every click, search, key press or scroll, DeepPilot now waits until the page stops changing (results loaded, dialog opened) before reading it. Single-page apps like LinkedIn used to be read before their results appeared, which caused contradictory conclusions.
+  - **Going-in-circles detector.** Re-opening the same page, re-reading it or re-running the same search 3+ times triggers a firm nudge to decide from the notes and move on (and, if still stuck, to ask you).
+  - **"Decide and move on" rules.** It checks a fact once, writes it down and trusts its notes, and prefers the most direct evidence. It checks "skip anyone already messaged" per person when it gets to them, instead of pre-scanning the inbox.
+  - **Overlays handled.** Chat windows on LinkedIn/Facebook are closed with their X button (Escape doesn't close them), and a screenshot is sent automatically when a click opens a dialog or overlay.
+- The latest 2 steps now stay in full detail, so the agent doesn't need to re-open a page it just read.
+
 ## [2.4.0] — 2026-09-30
 ### Added
 - **Sync between computers** through Chrome Sync: memories, skills, agents and settings follow your Google account. API keys are optional. Includes a status line, *Sync now*, and a one-file **backup & restore**.

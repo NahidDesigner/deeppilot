@@ -177,7 +177,7 @@ Plain ES modules, **no build step** — edit a file, reload the extension. Read 
 git clone https://github.com/NahidDesigner/deeppilot && cd deeppilot
 npm install            # only Playwright, for the tests
 npm run check          # syntax, manifest, versions, secrets — no browser needed
-npm test               # 13 end-to-end suites, fully offline (mock DeepSeek + mock websites)
+npm test               # 14 end-to-end suites, fully offline (mock DeepSeek + mock websites)
 npm run build          # dist/deeppilot-vX.Y.Z.zip
 ```
 

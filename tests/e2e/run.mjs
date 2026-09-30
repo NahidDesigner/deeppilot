@@ -106,6 +106,12 @@ const CHECKS = {
     [r.B_keyAfterOptIn === 'sk-A-secret', 'keys sync only after opting in'],
     [r.backup && !r.backup.hasKey, 'backup file never contains keys'],
   ]; },
+  reliability: s => { const r = json(s); return [
+    [r.staleFree === true, 'waits for results that load late (no stale reads after a search)'],
+    [r.tickerStepMs != null && r.tickerStepMs < 6000, 'a constantly-changing page never makes a step hang'],
+    [r.warned === true, 'going in circles triggers a nudge to decide and move on'],
+    [!r.errors?.length, 'no errors in the panel'],
+  ]; },
   voice: s => { const r = json(s); return [
     [!r.errors?.length, 'voice input works without errors'],
   ]; },
