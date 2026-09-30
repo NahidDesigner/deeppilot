@@ -3,5 +3,5 @@ Third-party libraries bundled with DeepPilot:
 - jsPDF 2.5.2 (MIT)
 - jsPDF-AutoTable 3.8.4 (MIT)
 - JSZip 3.10.1 (MIT)
-- Geist & Geist Mono fonts by Vercel (SIL Open Font License 1.1) — see fonts/OFL-Geist.txt
+- Geist & Geist Mono fonts by Vercel (SIL Open Font License 1.1) — see fonts/OFL-Geist.txt. fonts/Geist-PDF-*.ttf are static, Latin-subset instances of Geist used to embed the font in generated PDFs (same license).
 - Icons adapted from Lucide (ISC License, https://lucide.dev)

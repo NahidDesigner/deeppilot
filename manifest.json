@@ -3,7 +3,7 @@
   "name": "DeepPilot – AI Browser Agent",
   "short_name": "DeepPilot",
   "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAsp1YXoZAs5Iin3E2TxM0sjBsxBw7lXipF7zBBWEyulpU08l8YO05RqNL1KLpd5TLbCdL6W1CqV2qk6rFWOnZk5NRC5EOftTzBMaI7NgH3sRqDc9pW55l9a20OwSABFQXZIS26KDNFn4z/nWyaf7MQg2dgbYnUCSBxLHnOBqI1hqZmoew4oStocYPY/0qi19+xevJB9n3GdSnlNMalezxoltwTTSS/fJ0zEungM4Rm/HMG6w6B83CzmPt0FCQ2eXw/a0lUw9ggiCq/wsPxZ9pRqkgWuiiqZwcsurRtNdV6GIr8PGwzUo3bq5kuS4hzOmPxKdxKcQOODuSxL5/UC3pmwIDAQAB",
-  "version": "2.4.1",
+  "version": "2.4.2",
   "description": "An AI agent that browses for you: opens pages, clicks, types and completes tasks using your own DeepSeek API key.",
   "minimum_chrome_version": "120",
   "permissions": [

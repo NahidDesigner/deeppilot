@@ -106,6 +106,13 @@ const CHECKS = {
     [r.B_keyAfterOptIn === 'sk-A-secret', 'keys sync only after opting in'],
     [r.backup && !r.backup.hasKey, 'backup file never contains keys'],
   ]; },
+  'pdf-design': s => { const r = json(s); return [
+    [r.head === '%PDF-1.3' && r.size > 30000, 'builds a valid PDF'],
+    [r.geist, 'embeds the Geist font (Unicode symbols render correctly)'],
+    [r.pages >= 2, 'long content flows onto more pages'],
+    [r.hardBreak, 'keeps Markdown line breaks'],
+    [!r.errors?.length, 'no errors'],
+  ]; },
   reliability: s => { const r = json(s); return [
     [r.staleFree === true, 'waits for results that load late (no stale reads after a search)'],
     [r.tickerStepMs != null && r.tickerStepMs < 6000, 'a constantly-changing page never makes a step hang'],

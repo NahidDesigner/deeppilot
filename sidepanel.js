@@ -74,7 +74,7 @@ function renderMd(text) {
     }
     list = null;
     if (b.t === 'h') { const h = el(b.level <= 2 ? 'h3' : 'h4'); h.innerHTML = inline(b.text); frag.appendChild(h); }
-    else if (b.t === 'p' || b.t === 'quote') { const p = el('p'); p.innerHTML = inline(b.text); frag.appendChild(p); }
+    else if (b.t === 'p' || b.t === 'quote') { const p = el('p'); p.innerHTML = b.text.split('\n').map(inline).join('<br>'); frag.appendChild(p); }
     else if (b.t === 'code') frag.appendChild(el('pre', null, b.text));
     else if (b.t === 'hr') frag.appendChild(el('hr'));
     else if (b.t === 'table') {

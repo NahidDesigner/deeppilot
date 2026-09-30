@@ -2,6 +2,19 @@
 
 All notable changes to DeepPilot. The format follows [Keep a Changelog](https://keepachangelog.com/) and versions follow [Semantic Versioning](https://semver.org/).
 
+## [2.4.2] — 2026-09-30
+### Added
+- **Designed PDFs.** Every PDF DeepPilot creates now has a dark title band, accent section headings, **bold** inside text, styled tables with zebra rows, highlighted callouts and "Page x of y" footers.
+### Fixed
+- **Symbols in PDFs** (≤ ≥ → — € ₹ ≈ …) printed as garbage. The Geist font is now embedded. Emoji are removed and ✓ ✗ ★ ৳ get close equivalents.
+- Markdown line breaks ("**Label:** value" lines) are kept in PDFs, Word files and the chat.
+- **Canvas editors (Canva, Figma…) and long tasks:**
+  - a progress check every 25 steps and at 70% of the step budget;
+  - "commit to one approach" rules, and guidance for canvas editors;
+  - it offers to build the file itself when an in-app design isn't working.
+- Key names like "Page Up", "Esc", "Return" and "Del" are understood.
+- Viewing screenshots of the same page repeatedly no longer counts as going in circles.
+
 ## [2.4.1] — 2026-09-30
 ### Fixed
 - **Simple tasks going in circles.** A real LinkedIn run took ~150 steps for a 20-step job. Four fixes:
