@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>DeepPilot – Microphone access</title>
+  <style>
+    body { font: 16px/1.5 system-ui, sans-serif; display: grid; place-items: center; min-height: 100vh; margin: 0; background: #f6f7f9; color: #15171a; }
+    .box { background: #fff; padding: 32px; border-radius: 14px; box-shadow: 0 4px 24px #0001; max-width: 420px; text-align: center; margin: 16px; }
+    button { background: #4d6bfe; color: #fff; border: 0; padding: 12px 20px; border-radius: 10px; font: inherit; font-weight: 600; cursor: pointer; }
+    #msg { margin-top: 16px; }
+    @media (prefers-color-scheme: dark) { body { background: #111317; color: #e8eaed; } .box { background: #1a1d23; } }
+  </style>
+</head>
+<body>
+  <div class="box">
+    <h1 style="font-size:20px">Allow microphone for DeepPilot</h1>
+    <p>Chrome needs you to allow the microphone once, so you can speak your tasks in the side panel.</p>
+    <button id="allow">Allow microphone</button>
+    <p id="msg" role="status"></p>
+  </div>
+  <script src="permission.js"></script>
+</body>
+</html>

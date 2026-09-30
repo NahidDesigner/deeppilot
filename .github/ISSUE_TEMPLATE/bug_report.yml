@@ -1,0 +1,41 @@
+name: 🐞 Bug report
+description: Something doesn't work as expected
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: Thanks for taking the time! Screenshots with the **steps** toggle on help most.
+  - type: textarea
+    id: task
+    attributes:
+      label: What did you ask DeepPilot to do?
+      placeholder: "Find 10 HVAC companies in Dallas on Google Maps and give me a CSV…"
+    validations: { required: true }
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened, and what did you expect?
+    validations: { required: true }
+  - type: textarea
+    id: shots
+    attributes:
+      label: Screenshots or error messages
+      description: Drag images here. Please hide API keys and personal data.
+  - type: input
+    id: version
+    attributes:
+      label: DeepPilot version
+      description: Shown at chrome://extensions
+      placeholder: "2.4.0"
+    validations: { required: true }
+  - type: input
+    id: browser
+    attributes:
+      label: Browser and operating system
+      placeholder: "Chrome 131 on Windows 11"
+    validations: { required: true }
+  - type: dropdown
+    id: model
+    attributes:
+      label: Model provider
+      options: [DeepSeek (default), OpenRouter, Groq, Ollama (local), Other]

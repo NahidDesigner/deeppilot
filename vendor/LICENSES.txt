@@ -1,0 +1,7 @@
+Third-party libraries bundled with DeepPilot:
+- SheetJS xlsx 0.18.5 (Apache-2.0)
+- jsPDF 2.5.2 (MIT)
+- jsPDF-AutoTable 3.8.4 (MIT)
+- JSZip 3.10.1 (MIT)
+- Geist & Geist Mono fonts by Vercel (SIL Open Font License 1.1) — see fonts/OFL-Geist.txt
+- Icons adapted from Lucide (ISC License, https://lucide.dev)

@@ -1,0 +1,20 @@
+{
+  "name": "deeppilot",
+  "version": "2.4.0",
+  "private": true,
+  "description": "An AI agent that flies your browser — powered by your own DeepSeek key. Chrome extension (Manifest V3), no build step.",
+  "type": "module",
+  "scripts": {
+    "test": "node tests/e2e/run.mjs",
+    "build": "node tools/build-zip.mjs",
+    "check": "node tools/check.mjs",
+    "bench:cost": "node tools/cost-benchmark.mjs ."
+  },
+  "devDependencies": {
+    "playwright": "1.56.1"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "license": "MIT"
+}

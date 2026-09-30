@@ -1,0 +1,31 @@
+name: Release
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
+      - run: node tools/check.mjs
+      - name: Tag matches manifest version
+        run: |
+          V=$(node -p "require('./manifest.json').version")
+          [ "v$V" = "${GITHUB_REF_NAME}" ] || { echo "Tag ${GITHUB_REF_NAME} does not match manifest version $V"; exit 1; }
+      - run: node tools/build-zip.mjs
+      - name: Release notes from CHANGELOG.md
+        run: |
+          V=${GITHUB_REF_NAME#v}
+          awk -v v="$V" '$0 ~ "^## \\[" v "\\]" {f=1; next} /^## \[/ {f=0} f' CHANGELOG.md > notes.md
+          printf '\n---\n**Install:** download `deeppilot-v%s.zip`, unzip it, open `chrome://extensions`, turn on Developer mode, click **Load unpacked** and pick the `deeppilot` folder.\n' "$V" >> notes.md
+      - name: Publish
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release create "$GITHUB_REF_NAME" dist/*.zip --title "DeepPilot $GITHUB_REF_NAME" --notes-file notes.md

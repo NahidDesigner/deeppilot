@@ -1,0 +1,455 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark light">
+  <title>DeepPilot</title>
+  <link rel="stylesheet" href="sidepanel.css">
+</head>
+<body class="hide-steps booting">
+  <!-- Full-page sidebar (history) — shown only in full-page mode -->
+  <aside id="sidebar" class="sidebar" hidden aria-label="Chat history">
+    <div class="side-head">
+      <div class="brand">
+        <svg class="ic mark" aria-hidden="true"><use href="#i-mark"/></svg>
+        <span class="wordmark">DEEPPILOT</span>
+      </div>
+      <button id="sideNewChat" class="btn primary side-new" type="button"><svg class="ic"><use href="#i-plus"/></svg><span>New chat</span></button>
+      <label class="search">
+        <svg class="ic"><use href="#i-search"/></svg>
+        <input id="sideSearch" type="search" placeholder="Search chats" aria-label="Search chats">
+      </label>
+    </div>
+    <div id="sideList" class="side-list"></div>
+    <div class="side-foot"><span id="sideCloud" class="badge"></span></div>
+  </aside>
+
+  <div id="main" class="main">
+    <!-- ============ HEADER ============ -->
+    <header class="topbar">
+      <div class="brand">
+        <svg class="ic mark" aria-hidden="true"><use href="#i-mark"/></svg>
+        <span class="wordmark">DEEPPILOT</span>
+      </div>
+      <div class="top-actions">
+        <button id="sideToggle" class="icon-btn app-only" type="button" title="Show or hide history" aria-label="Show or hide history"><svg class="ic"><use href="#i-sidebar"/></svg></button>
+        <button id="newChatBtn" class="icon-btn" type="button" title="New chat" aria-label="New chat"><svg class="ic"><use href="#i-plus"/></svg></button>
+        <button id="fullPageBtn" class="icon-btn panel-only" type="button" title="Open full page" aria-label="Open full page"><svg class="ic"><use href="#i-expand"/></svg></button>
+        <button id="settingsBtn" class="icon-btn" type="button" title="Settings" aria-label="Settings"><svg class="ic"><use href="#i-settings"/></svg></button>
+      </div>
+    </header>
+
+    <!-- ============ NAV ============ -->
+    <nav class="tabs" role="tablist" aria-label="Sections">
+      <button role="tab" id="tabChat" class="tab active" aria-selected="true" type="button"><svg class="ic"><use href="#i-chat"/></svg><span>Chat</span></button>
+      <button role="tab" id="tabHistory" class="tab" aria-selected="false" type="button"><svg class="ic"><use href="#i-history"/></svg><span>History</span></button>
+      <button role="tab" id="agentsBtn" class="tab" aria-selected="false" type="button"><svg class="ic"><use href="#i-bot"/></svg><span>Agents</span></button>
+      <button role="tab" id="skillsBtn" class="tab" aria-selected="false" type="button"><svg class="ic"><use href="#i-bolt"/></svg><span>Skills</span></button>
+      <button role="tab" id="memoryBtn" class="tab" aria-selected="false" type="button"><svg class="ic"><use href="#i-memory"/></svg><span>Memory</span></button>
+      <span class="tab-ink" aria-hidden="true"></span>
+    </nav>
+
+    <!-- ============ ALERT ============ -->
+    <div id="alarmBar" class="alarm" hidden role="alert">
+      <svg class="ic alarm-ic"><use href="#i-check"/></svg>
+      <span id="alarmText">Task done</span>
+      <button id="stopAlarmBtn" class="btn small-btn" type="button"><svg class="ic"><use href="#i-mute"/></svg><span id="stopAlarmLabel">Stop sound</span></button>
+    </div>
+
+    <!-- ============ CHAT ============ -->
+    <div id="chatView" class="view">
+      <!-- Signature: live telemetry strip -->
+      <div class="telemetry" id="telemetry">
+        <span id="light" class="orb idle" role="status" aria-label="Ready"></span>
+        <span id="lightLabel" class="tel-state">STANDBY</span>
+        <span class="tel-sep" aria-hidden="true"></span>
+        <span id="statusBar" class="tel-field"><span id="statusText">Ready for a task</span></span>
+        <span id="telTime" class="tel-field tel-time" hidden></span>
+        <button id="viewTabBtn" class="tel-link" type="button" hidden title="Show the tab DeepPilot is working in"><svg class="ic"><use href="#i-external"/></svg><span>Tab</span></button>
+        <span class="tel-toggles" id="chatToggles">
+          <label class="tgl" title="Show the agent's narration"><input id="tglTalk" type="checkbox"><svg class="ic"><use href="#i-narrate"/></svg><span class="sr">Narration</span></label>
+          <label class="tgl" title="Show every technical step and screenshot"><input id="tglFlow" type="checkbox"><svg class="ic"><use href="#i-steps"/></svg><span class="sr">Steps</span></label>
+        </span>
+      </div>
+
+      <div id="convBar" class="conv-bar" hidden>
+        <span id="convTitle" class="conv-title"></span>
+        <button id="convMd" class="icon-btn sm" type="button" title="Download this chat (.md)" aria-label="Download this chat"><svg class="ic"><use href="#i-download"/></svg></button>
+        <button id="convDelete" class="icon-btn sm danger-hover" type="button" title="Delete this chat" aria-label="Delete this chat"><svg class="ic"><use href="#i-trash"/></svg></button>
+      </div>
+
+      <!-- Signature: agent flight path -->
+      <div id="runBar" class="flight" hidden>
+        <div class="flight-top">
+          <svg class="ic"><use href="#i-bot"/></svg>
+          <span class="flight-id"><span class="flight-name" id="runName">Agent</span><span class="flight-meta" id="runMeta"></span></span>
+          <span class="flight-actions">
+            <button id="runResume" class="btn primary small-btn" type="button" hidden><svg class="ic"><use href="#i-play"/></svg><span>Resume</span></button>
+            <button id="runStop" class="btn ghost small-btn" type="button" hidden><svg class="ic"><use href="#i-pause"/></svg><span>Pause</span></button>
+          </span>
+        </div>
+        <div class="flight-path" id="runSteps"></div>
+        <div class="flight-now" id="runNow"></div>
+        <div class="flight-items" id="runItems" hidden><i id="runItemsFill"></i></div>
+        <div class="lanes" id="runLanes" hidden></div>
+      </div>
+
+      <!-- Parallel tabs the agent opened by itself (run_in_parallel) -->
+      <div id="splitBar" class="flight split" hidden>
+        <div class="flight-top">
+          <svg class="ic"><use href="#i-layers"/></svg>
+          <span class="flight-id"><span class="flight-name" id="splitName">Parallel tabs</span><span class="flight-meta" id="splitMeta"></span></span>
+        </div>
+        <div class="flight-items" id="splitItems"><i id="splitFill"></i></div>
+        <div class="lanes" id="splitLanes"></div>
+      </div>
+
+      <div id="otherRunning" class="notice" hidden>
+        <svg class="ic"><use href="#i-info"/></svg>
+        <span>A task is running in another chat.</span>
+        <button id="goRunning" class="link-btn" type="button">Go to it</button>
+      </div>
+
+      <main id="log" class="log" aria-live="polite">
+        <div id="empty" class="empty">
+          <div class="radar" aria-hidden="true">
+            <span class="ring r1"></span><span class="ring r2"></span><span class="ring r3"></span>
+            <span class="sweep"></span>
+            <svg class="ic radar-mark"><use href="#i-mark"/></svg>
+          </div>
+          <p class="eyebrow">READY FOR TAKEOFF</p>
+          <h1 class="hero">Where to, pilot?</h1>
+          <p class="lede">Give me a task. I'll open pages, click, type, collect data and hand you the files — in this tab, while you keep working in others.</p>
+          <div class="plans" role="list">
+            <button class="example" type="button" role="listitem" data-task="Find 10 HVAC companies in Texas on Google Maps and give me a CSV with name, website, email, phone and Maps URL">
+              <span class="plan-ic"><svg class="ic"><use href="#i-target"/></svg></span>
+              <span class="plan-body"><span class="plan-title">Find 10 HVAC leads in Texas</span><span class="plan-meta">GOOGLE MAPS → CSV</span></span>
+              <svg class="ic plan-go"><use href="#i-arrow"/></svg>
+            </button>
+            <button class="example" type="button" role="listitem" data-task="Summarize this page in 5 bullet points">
+              <span class="plan-ic"><svg class="ic"><use href="#i-doc"/></svg></span>
+              <span class="plan-body"><span class="plan-title">Summarize this page</span><span class="plan-meta">5 BULLETS · ~30 SEC</span></span>
+              <svg class="ic plan-go"><use href="#i-arrow"/></svg>
+            </button>
+            <button class="example" type="button" role="listitem" data-task="Go to my 5 most recent LinkedIn connections and send each a short welcome message">
+              <span class="plan-ic"><svg class="ic"><use href="#i-linkedin"/></svg></span>
+              <span class="plan-body"><span class="plan-title">Welcome new LinkedIn connections</span><span class="plan-meta">5 PEOPLE · ASKS BEFORE SENDING</span></span>
+              <svg class="ic plan-go"><use href="#i-arrow"/></svg>
+            </button>
+          </div>
+          <p class="tip"><kbd>/</kbd> skills &amp; agents <span aria-hidden="true">·</span> <kbd>⇧</kbd><kbd>↵</kbd> new line</p>
+        </div>
+      </main>
+
+      <footer class="composer">
+        <div id="queueBox" class="queue" hidden>
+          <div class="queue-head">
+            <span class="queue-label"><svg class="ic"><use href="#i-layers"/></svg><span id="queueTitle">Up next</span></span>
+            <span class="queue-actions">
+              <button id="queueResume" class="link-btn" type="button" hidden>Resume</button>
+              <button id="queueClear" class="link-btn" type="button">Clear</button>
+            </span>
+          </div>
+          <ol id="queueList"></ol>
+        </div>
+        <div id="interim" class="interim" hidden></div>
+        <div id="slashMenu" class="slash-menu" role="listbox" aria-label="Skills and agents" hidden></div>
+        <div id="sendModes" class="modes" role="radiogroup" aria-label="What your message does" hidden>
+          <button type="button" class="mode" role="radio" data-mode="a"><svg class="ic"><use href="#i-layers"/></svg><span></span></button>
+          <button type="button" class="mode" role="radio" data-mode="b"><svg class="ic"><use href="#i-narrate"/></svg><span></span></button>
+          <span class="mode-note" id="modeNote"></span>
+        </div>
+        <form id="form" class="dock">
+          <div id="grip" class="grip" role="separator" aria-orientation="horizontal" aria-label="Drag to resize the message box" title="Drag to resize · double-click to reset" tabindex="0"><span></span></div>
+          <div id="attachList" class="attach-list" hidden></div>
+          <textarea id="input" rows="2" placeholder="Describe a task…" aria-label="Message"></textarea>
+          <input id="fileInput" type="file" multiple hidden>
+          <div id="dropHint" class="drop-hint" hidden><svg class="ic"><use href="#i-paperclip"/></svg><span>Drop files to attach</span></div>
+          <div class="dock-row">
+            <button id="micBtn" type="button" class="icon-btn mic" title="Voice input" aria-label="Voice input" aria-pressed="false"><svg class="ic"><use href="#i-mic"/></svg></button>
+            <button id="attachBtn" type="button" class="icon-btn" title="Attach files (CSV, Excel, Word, text, images, PDF…)" aria-label="Attach files"><svg class="ic"><use href="#i-paperclip"/></svg></button>
+            <span class="hint" id="hint">Enter to send</span>
+            <button id="stopBtn" class="btn danger" type="button" hidden><svg class="ic"><use href="#i-stop"/></svg><span>Stop</span></button>
+            <button id="sendBtn" class="btn primary send" type="submit"><span id="sendLabel">Send</span><svg class="ic"><use href="#i-send"/></svg></button>
+          </div>
+        </form>
+        <div class="meter" id="meter" title="Estimated DeepSeek cost">
+          <div class="meter-bar" aria-hidden="true"><span id="meterFill"></span></div>
+          <div class="meter-text">
+            <span id="meterTask">TASK 0 TOK · $0.0000</span>
+            <span id="meterSession">SESSION $0.0000</span>
+            <span id="meterRate" class="rate"></span>
+          </div>
+        </div>
+      </footer>
+    </div>
+
+    <!-- ============ HISTORY ============ -->
+    <div id="historyView" class="view page" hidden>
+      <div class="page-head">
+        <div>
+          <p class="eyebrow">LOGBOOK</p>
+          <h2 class="page-title">History</h2>
+        </div>
+        <button id="histFullPage" class="btn ghost small-btn panel-only" type="button"><svg class="ic"><use href="#i-expand"/></svg><span>Full page</span></button>
+      </div>
+      <label class="search">
+        <svg class="ic"><use href="#i-search"/></svg>
+        <input id="historySearch" type="search" placeholder="Search chats and files" aria-label="Search history">
+      </label>
+      <div class="hist-sub"><span id="cloudBadge" class="badge"></span></div>
+      <div id="historyList" class="hist-list"></div>
+    </div>
+
+    <!-- ============ AGENTS ============ -->
+    <section id="agentsPanel" class="view page" hidden>
+      <div class="page-head">
+        <div>
+          <p class="eyebrow">AUTOPILOT</p>
+          <h2 class="page-title">Agents</h2>
+          <p class="page-sub">Multi-stage workflows that keep flying until the job is done.</p>
+        </div>
+      </div>
+      <ul id="agentList" class="cards"></ul>
+
+      <div id="agentRunForm" class="sheet" hidden>
+        <p class="eyebrow">PRE-FLIGHT</p>
+        <b id="runFormTitle" class="sheet-title">Run agent</b>
+        <div id="runFormInputs" class="run-inputs"></div>
+        <label class="field">Extra instructions for this run <span class="opt">optional</span><textarea id="runExtra" rows="2" placeholder="e.g. focus on businesses with older websites"></textarea></label>
+        <div class="row-end"><button id="runCancel" class="btn ghost" type="button">Cancel</button><button id="runGo" class="btn primary" type="button"><svg class="ic"><use href="#i-play"/></svg><span>Take off</span></button></div>
+      </div>
+
+      <details id="agentForm" class="builder">
+        <summary><svg class="ic"><use href="#i-plus"/></svg><span id="agentFormTitle">New agent</span></summary>
+        <div class="ai-draft">
+          <p class="eyebrow">DESCRIBE IT — AI WRITES THE STAGES</p>
+          <textarea id="agDraftText" rows="3" aria-label="Describe what the agent should do" placeholder="Every day find 10 dentists in Miami on Google Maps, check their websites with PageSpeed, find their emails, and give me an Excel of the ones with slow sites."></textarea>
+          <div class="row-end">
+            <button id="agExample" class="btn ghost small-btn" type="button">Use Lead Hunter example</button>
+            <button id="agDraft" class="btn primary small-btn" type="button"><svg class="ic"><use href="#i-sparkles"/></svg><span id="agDraftLabel">Draft with AI</span></button>
+          </div>
+        </div>
+        <input type="hidden" id="agId">
+        <label class="field">Name <input id="agTitle" type="text" placeholder="Lead Hunter"></label>
+        <label class="field">Goal <textarea id="agDesc" rows="2" placeholder="What the whole agent achieves"></textarea></label>
+        <label class="field">Rules it must always follow <textarea id="agRules" rows="3" placeholder="- Never send messages&#10;- Leave fields empty rather than guessing"></textarea></label>
+        <div class="sub-head"><b>Inputs</b><span>asked on every run · use as {name}</span></div>
+        <div id="agInputs" class="inputs-ed"></div>
+        <button id="agAddInput" class="link-btn" type="button"><svg class="ic"><use href="#i-plus"/></svg>Add input</button>
+        <div class="sub-head"><b>Flight plan</b><span>stages run in order</span></div>
+        <ol id="agStages" class="stages"></ol>
+        <button id="agAddStage" class="btn ghost small-btn" type="button"><svg class="ic"><use href="#i-plus"/></svg><span>Add stage</span></button>
+        <div class="grid2">
+          <label class="field">Max cost per run (USD) <input id="agMaxCost" type="number" min="0" step="0.05"></label>
+          <label class="field">Max steps per stage <input id="agMaxSteps" type="number" min="5" max="300"></label>
+        </div>
+        <label class="field">Parallel tabs <input id="agParallel" type="number" min="1" max="10" step="1">
+          <small class="field-hint">"For each item" stages work on this many items at once, each in its own background tab (1–10). LinkedIn, Facebook and messaging stages always go one at a time.</small></label>
+        <div class="row-end">
+          <button id="agCancel" class="btn ghost" type="button">Cancel</button>
+          <button id="agSave" class="btn primary" type="button">Save agent</button>
+        </div>
+        <p id="agMsg" class="form-msg" role="status"></p>
+      </details>
+      <div class="page-foot">
+        <button id="agImport" class="link-btn" type="button"><svg class="ic"><use href="#i-upload"/></svg>Import</button>
+        <button id="agExport" class="link-btn" type="button"><svg class="ic"><use href="#i-download"/></svg>Export</button>
+        <input id="agImportFile" type="file" accept=".json,application/json" hidden>
+      </div>
+    </section>
+
+    <!-- ============ SKILLS ============ -->
+    <section id="skillsPanel" class="view page" hidden>
+      <div class="page-head">
+        <div>
+          <p class="eyebrow">QUICK ACTIONS</p>
+          <h2 class="page-title">Skills</h2>
+          <p class="page-sub">Tasks you repeat. Type <kbd>/</kbd> in the chat to run one.</p>
+        </div>
+      </div>
+      <ul id="skillList" class="cards"></ul>
+      <details id="skillForm" class="builder">
+        <summary><svg class="ic"><use href="#i-plus"/></svg><span id="skillFormTitle">New skill</span></summary>
+        <input type="hidden" id="skillId">
+        <label class="field">Name <span class="opt">you'll type /name</span><input id="skillName" type="text" placeholder="daily-linkedin-welcome" spellcheck="false"></label>
+        <label class="field">Short description <input id="skillDesc" type="text" placeholder="Welcome today's new LinkedIn connections"></label>
+        <label class="field">Instructions <textarea id="skillInstr" rows="6" placeholder="1. Go to linkedin.com/mynetwork/invite-connect/connections/&#10;2. Take the connections added today&#10;3. Send each my welcome template from memory&#10;4. Give me a list of who was messaged"></textarea></label>
+        <div class="row-end">
+          <button id="skillCancel" class="btn ghost" type="button">Cancel</button>
+          <button id="skillSave" class="btn primary" type="button">Save skill</button>
+        </div>
+        <p id="skillMsg" class="form-msg" role="status"></p>
+      </details>
+      <div class="page-foot">
+        <button id="skillImport" class="link-btn" type="button"><svg class="ic"><use href="#i-upload"/></svg>Import</button>
+        <button id="skillExport" class="link-btn" type="button"><svg class="ic"><use href="#i-download"/></svg>Export</button>
+        <input id="skillImportFile" type="file" accept=".json,application/json" hidden>
+      </div>
+    </section>
+
+    <!-- ============ MEMORY ============ -->
+    <section id="memoryPanel" class="view page" hidden>
+      <div class="page-head">
+        <div>
+          <p class="eyebrow">ON BOARD</p>
+          <h2 class="page-title">Memory</h2>
+          <p class="page-sub">Facts DeepPilot uses in every task. Say "remember …" in chat, or add one here.</p>
+        </div>
+      </div>
+      <div class="mem-add">
+        <textarea id="memoryInput" rows="2" aria-label="New memory" placeholder="My LinkedIn welcome message: Hi {first name}, thanks for connecting! …"></textarea>
+        <div class="row-end"><button id="addMemoryBtn" class="btn primary small-btn" type="button"><svg class="ic"><use href="#i-plus"/></svg><span>Add memory</span></button></div>
+      </div>
+      <ul id="memoryList" class="cards mem"></ul>
+    </section>
+
+    <!-- ============ SETTINGS ============ -->
+    <section id="settings" class="view page" hidden>
+      <div class="page-head">
+        <div>
+          <p class="eyebrow">CONTROLS</p>
+          <h2 class="page-title">Settings</h2>
+        </div>
+      </div>
+
+      <section class="group">
+        <h3><svg class="ic"><use href="#i-key"/></svg>DeepSeek</h3>
+        <label class="field">API key <input id="s_apiKey" type="password" placeholder="sk-…" autocomplete="off" spellcheck="false"></label>
+        <div class="grid2">
+          <label class="field">Model <input id="s_model" type="text" spellcheck="false"></label>
+          <label class="field">API base URL <input id="s_baseUrl" type="text" spellcheck="false"></label>
+        </div>
+        <div class="row-end"><button id="testKeyBtn" class="btn ghost small-btn" type="button"><svg class="ic"><use href="#i-activity"/></svg><span>Test connection</span></button></div>
+      </section>
+
+      <section class="group">
+        <h3><svg class="ic"><use href="#i-sun"/></svg>Appearance</h3>
+        <div class="seg" role="radiogroup" aria-label="Theme">
+          <label><input type="radio" name="theme" value="light"><span><svg class="ic"><use href="#i-sun"/></svg>Daylight</span></label>
+          <label><input type="radio" name="theme" value="dark"><span><svg class="ic"><use href="#i-moon"/></svg>Flight deck</span></label>
+          <label><input type="radio" name="theme" value="auto"><span><svg class="ic"><use href="#i-laptop"/></svg>System</span></label>
+        </div>
+      </section>
+
+      <section class="group">
+        <h3><svg class="ic"><use href="#i-bot"/></svg>Agent behaviour</h3>
+        <label class="field">Max steps per task <input id="s_maxSteps" type="number" min="5" max="300"></label>
+        <label class="check"><input id="s_vision" type="checkbox"><span>Send screenshots to the model (vision)</span></label>
+        <label class="check sub-check"><input id="s_smartVision" type="checkbox"><span>Only when the page changes — saves tokens<small class="field-hint">The agent can still ask for a screenshot any time it needs to see the page.</small></span></label>
+        <label class="check"><input id="s_confirmRisky" type="checkbox"><span>Ask me before buying, sending, deleting or posting</span></label>
+        <label class="check"><input id="s_showCursor" type="checkbox"><span>Show the agent's cursor on the page</span></label>
+        <label class="check"><input id="s_autoParallel" type="checkbox"><span>Let DeepPilot split work across parallel tabs by itself<small class="field-hint">When a task has several independent items (e.g. audit 10 websites) it works on them at the same time. Never used for messaging, posting or LinkedIn/Facebook.</small></span></label>
+        <label class="field">Max parallel tabs <input id="s_maxParallel" type="number" min="2" max="10"></label>
+      </section>
+
+      <section class="group">
+        <h3><svg class="ic"><use href="#i-sound"/></svg>Sounds &amp; alerts</h3>
+        <div class="sound-row"><label class="field">Task done <select id="s_soundDone" class="sound-select"></select></label><button class="icon-btn play" type="button" data-for="s_soundDone" aria-label="Preview sound"><svg class="ic"><use href="#i-play"/></svg></button></div>
+        <div class="sound-row"><label class="field">Needs your input <select id="s_soundAsk" class="sound-select"></select></label><button class="icon-btn play" type="button" data-for="s_soundAsk" aria-label="Preview sound"><svg class="ic"><use href="#i-play"/></svg></button></div>
+        <div class="sound-row"><label class="field">Error or stopped <select id="s_soundError" class="sound-select"></select></label><button class="icon-btn play" type="button" data-for="s_soundError" aria-label="Preview sound"><svg class="ic"><use href="#i-play"/></svg></button></div>
+        <label class="field">Volume <input id="s_volume" type="range" min="0" max="1" step="0.05"></label>
+        <label class="check"><input id="s_repeatAlarm" type="checkbox"><span>Keep ringing until I stop it</span></label>
+        <label class="check"><input id="s_notify" type="checkbox"><span>Show a desktop notification</span></label>
+      </section>
+
+      <section class="group">
+        <h3><svg class="ic"><use href="#i-mic"/></svg>Voice input</h3>
+        <label class="field">Engine
+          <select id="s_voiceEngine">
+            <option value="whisper">Whisper AI — most accurate (free Groq key)</option>
+            <option value="chrome">Chrome built-in — instant, less accurate</option>
+          </select>
+        </label>
+        <div id="whisperFields">
+          <label class="field">Whisper API key <input id="s_whisperKey" type="password" placeholder="gsk_…" autocomplete="off" spellcheck="false"></label>
+          <p class="help">Free key at <a href="https://console.groq.com/keys" target="_blank" rel="noopener">console.groq.com/keys</a>. Voice clips are sent there to be transcribed; the key stays in this browser.</p>
+          <details class="adv">
+            <summary>Advanced</summary>
+            <label class="field">Model <input id="s_whisperModel" type="text" spellcheck="false"></label>
+            <label class="field">Transcription URL <input id="s_whisperUrl" type="text" spellcheck="false"></label>
+          </details>
+        </div>
+        <label class="field">Language
+          <select id="s_voiceLang">
+            <option value="auto">Detect automatically (Whisper only)</option>
+            <option value="en-US">English (US)</option><option value="en-IN">English (South Asian accent)</option><option value="en-GB">English (UK)</option><option value="bn-BD">বাংলা (Bangladesh)</option>
+            <option value="hi-IN">हिन्दी</option><option value="ur-PK">اردو</option><option value="ar-SA">العربية</option>
+            <option value="es-ES">Español</option><option value="fr-FR">Français</option><option value="de-DE">Deutsch</option>
+          </select>
+        </label>
+        <label class="field">Words it should know <span class="opt">names, brands, jargon</span><textarea id="s_voiceWords" rows="2" placeholder="Nahid Web Studio, Elementor, HVAC, Coolify, Mirpur…"></textarea></label>
+      </section>
+
+      <section class="group">
+        <h3><svg class="ic"><use href="#i-activity"/></svg>Cost meter</h3>
+        <p class="help">USD per 1M tokens at peak time (DeepSeek-V4.1-Flash defaults). Off-peak is half price.</p>
+        <div class="grid3">
+          <label class="field">Cached input <input id="s_priceHit" type="number" step="0.001" min="0"></label>
+          <label class="field">Input <input id="s_priceMiss" type="number" step="0.01" min="0"></label>
+          <label class="field">Output <input id="s_priceOut" type="number" step="0.01" min="0"></label>
+        </div>
+        <label class="check"><input id="s_offPeak" type="checkbox"><span>Apply the off-peak discount automatically</span></label>
+        <label class="field">Budget per task (USD) <span class="opt">fills the meter</span><input id="s_taskBudget" type="number" step="0.01" min="0.001"></label>
+      </section>
+
+      <section class="group" id="syncSection">
+        <h3><svg class="ic"><use href="#i-refresh"/></svg>Sync between computers</h3>
+        <p class="help">Memory, skills, agents and settings follow your Google account to every computer where Chrome is signed in. Chrome stores them in your own Google account — nothing goes to a DeepPilot server. Needs Chrome → Settings → <b>Sync</b> with <b>Extensions</b> turned on.</p>
+        <label class="check"><input id="s_chromeSync" type="checkbox"><span>Sync with Chrome Sync</span></label>
+        <label class="check"><input id="s_syncKeys" type="checkbox"><span>Also sync my API keys<small class="field-hint">Off = each computer keeps its own DeepSeek / Groq / Supabase keys. Turn on to enter them only once.</small></span></label>
+        <div class="sync-status" id="syncStatus" role="status"><span class="sync-dot"></span><span id="syncText">Not synced yet</span></div>
+        <div class="sync-meter" aria-hidden="true"><i id="syncFill"></i></div>
+        <div class="row-end sync-actions">
+          <button id="syncClear" class="link-btn" type="button">Remove from Chrome Sync</button>
+          <button id="syncNow" class="btn ghost small-btn" type="button"><svg class="ic"><use href="#i-refresh"/></svg><span>Sync now</span></button>
+        </div>
+        <div class="sub-head"><b>Backup</b><span>one file with memory, skills, agents &amp; settings</span></div>
+        <div class="row-end sync-actions">
+          <button id="backupRestore" class="btn ghost small-btn" type="button"><svg class="ic"><use href="#i-upload"/></svg><span>Restore…</span></button>
+          <button id="backupExport" class="btn ghost small-btn" type="button"><svg class="ic"><use href="#i-download"/></svg><span>Download backup</span></button>
+          <input id="backupFile" type="file" accept=".json,application/json" hidden>
+        </div>
+        <p id="syncMsg" class="form-msg" role="status"></p>
+      </section>
+
+      <section class="group" id="cloudSection">
+        <h3><svg class="ic"><use href="#i-cloud"/></svg>Cloud history</h3>
+        <p class="help">History is always saved in this browser. Connect a free Supabase project to keep it in the cloud and open it from any computer.</p>
+        <label class="field">Supabase project URL <input id="s_supabaseUrl" type="text" placeholder="https://xxxx.supabase.co" spellcheck="false"></label>
+        <label class="field">Supabase anon key <input id="s_supabaseKey" type="password" spellcheck="false"></label>
+        <div id="cloudLoggedOut">
+          <div class="grid2">
+            <label class="field">Email <input id="cloudEmail" type="email" autocomplete="username"></label>
+            <label class="field">Password <input id="cloudPass" type="password" autocomplete="current-password"></label>
+          </div>
+          <div class="row-end"><button id="cloudSignUp" class="btn ghost small-btn" type="button">Create account</button><button id="cloudSignIn" class="btn primary small-btn" type="button">Sign in</button></div>
+        </div>
+        <div id="cloudLoggedIn" hidden>
+          <p class="signed"><svg class="ic"><use href="#i-user"/></svg>Signed in as <b id="cloudUser"></b></p>
+          <div class="row-end"><button id="cloudSyncAll" class="btn ghost small-btn" type="button"><svg class="ic"><use href="#i-upload"/></svg><span>Upload local history</span></button><button id="cloudSignOut" class="btn ghost small-btn" type="button"><svg class="ic"><use href="#i-logout"/></svg><span>Sign out</span></button></div>
+        </div>
+        <p id="cloudMsg" class="form-msg" role="status"></p>
+        <details class="adv">
+          <summary>One-time setup (SQL)</summary>
+          <p class="help">Supabase → SQL Editor → New query → paste → Run.</p>
+          <pre id="sqlText"></pre>
+          <button id="copySql" class="btn ghost small-btn" type="button"><svg class="ic"><use href="#i-copy"/></svg><span>Copy SQL</span></button>
+        </details>
+      </section>
+
+      <div class="savebar">
+        <span id="settingsMsg" class="form-msg" role="status"></span>
+        <button id="saveSettingsBtn" class="btn primary" type="button"><svg class="ic"><use href="#i-check"/></svg><span>Save settings</span></button>
+      </div>
+    </section>
+  </div><!-- /main -->
+
+  <script src="vendor/xlsx.mini.min.js"></script>
+  <script src="vendor/jspdf.umd.min.js"></script>
+  <script src="vendor/jspdf.plugin.autotable.min.js"></script>
+  <script src="vendor/jszip.min.js"></script>
+  <script type="module" src="sidepanel.js"></script>
+</body>
+</html>
