@@ -28,6 +28,8 @@ Each browser tab gets its own **Session** (`tab:<id>`); the full-page view gets 
 1. **Observe**: `lib/browser.js → observe()` injects `pageSnapshot` (`lib/page.js`) into the page and into every visible iframe. It uses `chrome.scripting` with frame ids, which also reaches cross-origin frames.
    - It lists the interactive elements in view as `[id] <tag> "label"`, with states and `— in: "…"` row/card context for repeated or generic controls.
    - `*` marks elements that are new since the last snapshot.
+   - Controls hidden until their row is hovered are listed as `(shows on hover)`; `click` hovers the row, re-measures, then presses. A click that changes nothing (checked with a `MutationObserver`) is reported back.
+   - `scroll` falls back to the page's main inner scroll panel when the window itself can't move.
    - An outline adds headings, alerts, dialogs, table rows and short values.
    - Frame elements get ids from `1000·k`. `runOn()` / `elementPoint()` send actions to the right frame and add the frame's offset.
    - Numbered boxes are drawn for a CDP screenshot when one is needed.

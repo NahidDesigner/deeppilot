@@ -115,6 +115,9 @@ const CHECKS = {
     [r.frameIds && r.frameAlert && r.frameText, 'reads, types and clicks inside a cross-origin iframe'],
     [r.findOK && r.foundInView && r.searchCount === 1, 'find jumps to an element far down the page; search_page counts text'],
     [r.extractSawPrice && /\$19/.test(r.final3 || ''), 'extract answers a question from the full page text'],
+    [r.hoverListed && r.hoverClickOK, 'controls that only show on hover are listed, hovered and clicked'],
+    [r.panelScrolled && r.nestedOK, 'scroll moves the inner panel when the page itself cannot scroll; a button inside a clickable row is its own target'],
+    [r.noChangeNote && r.realClickQuiet, 'a click that changes nothing is reported (and a working click is not)'],
     [!r.errors?.length, 'no errors in the panel'],
   ]; },
   brains: s => { const r = json(s); return [

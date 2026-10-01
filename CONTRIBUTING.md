@@ -40,7 +40,7 @@ Tests live in `tests/e2e/*.test.mjs`. Each one starts a local mock of the DeepSe
 
 1. Bump `version` in **both** `manifest.json` and `package.json` (`npm run check` fails if they differ).
 2. Update `CHANGELOG.md`.
-3. Tag and push: `git tag v2.5.0 && git push --tags`. The release workflow builds the zip and publishes a GitHub Release.
+3. Tag and push: `git tag v2.5.1 && git push --tags`. The release workflow builds the zip and publishes a GitHub Release.
 
 ## Reporting bugs and ideas
 

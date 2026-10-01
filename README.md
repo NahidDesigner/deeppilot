@@ -69,7 +69,7 @@ Creates **Excel, PDF, Word, CSV**, JSON and any text format. **Attach** CSV, Exc
 <td valign="top">
 
 ### 🧠 A second brain & site know-how
-An independent **check before "done"** compares your request with what was actually done — no more stopping half-way. Add an optional **stronger planner model** for hard sites while DeepSeek does the clicking. Built-in **Site Playbooks** for Cloudflare, Meta Ads Manager, cPanel, WordPress, Hostinger, GoDaddy, Namecheap, Google Ads, Search Console, Analytics, LinkedIn, Gmail, Canva, Shopify and more — and it **learns notes per site** as it works.
+An independent **check before "done"** compares your request with what was actually done — no more stopping half-way. Add an optional **stronger planner model** for hard sites while DeepSeek does the clicking. Built-in **Site Playbooks** for Cloudflare, Meta Ads Manager ([tested live](#-tested-on-real-sites)), cPanel, WordPress, Hostinger, GoDaddy, Namecheap, Google Ads, Search Console, Analytics, LinkedIn, Gmail, Canva, Shopify and more — and it **learns notes per site** as it works.
 
 </td>
 <td valign="top">
@@ -132,6 +132,16 @@ Live telemetry (status · step · elapsed), agent runs drawn as a flight path wi
 That's it. Try: *"Find 10 HVAC companies in Dallas on Google Maps and give me a CSV with name, website, email, phone and Maps URL."*
 
 > Works in Chrome 120+ and other Chromium browsers that support extension side panels (such as Edge and Brave). Chrome Sync needs Chrome signed in with **Extensions** included in sync.
+
+## ✅ Tested on real sites
+
+Automated tests run against practice sites. These are runs on the real thing, with the result as it happened:
+
+| Site | Task | Result |
+|---|---|---|
+| **Meta Ads Manager** (live, fresh ad account) · 2 Oct 2026 · v2.5.0 | Create a Traffic campaign and ad set as a **draft**: names, $2 daily budget, location changed from United States to Bangladesh, minimum age 25. Publish nothing. | **Completed.** Campaign and ad set saved as drafts, nothing published, every "Publish draft items?" prompt closed. About 95 steps and **$0.05**. It was slow on edit pencils that only appear on hover and on the editor's inner scrolling, and it wrongly reported that a maximum age can't be set. |
+
+v2.5.1 was built from that run: hover-only controls, inner-panel scrolling and a rewritten Ads Manager playbook. Those fixes pass on practice pages; a second live run is the next check. Meta changes Ads Manager often, and DeepPilot always asks before **Publish** or a budget change. The other built-in playbooks are written from how those sites work and have not all been verified live — reports from real use are welcome in [Issues](https://github.com/NahidDesigner/deeppilot/issues).
 
 ## 🔬 How it compares
 

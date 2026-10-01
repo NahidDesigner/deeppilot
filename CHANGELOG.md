@@ -2,6 +2,21 @@
 
 All notable changes to DeepPilot. The format follows [Keep a Changelog](https://keepachangelog.com/) and versions follow [Semantic Versioning](https://semver.org/).
 
+## [2.5.1] — 2026-10-02
+Built from the first run on the **live Meta Ads Manager** (a Traffic campaign and ad set created as a draft on a fresh ad account: completed, nothing published, about 95 steps and $0.05). The run showed three things that slowed it down; this release fixes them.
+### Added
+- **Controls that only show on hover** (edit pencils, "⋯" row menus) are now listed as `(shows on hover)` with the row they belong to, and a click hovers the row first.
+- **A real button inside a clickable row or card** is listed as its own target instead of being merged into the row.
+- **Clicks that change nothing are reported**, with what to try next, so the agent stops repeating a dead click.
+- README section **Tested on real sites** with the Ads Manager result.
+### Changed
+- `scroll` moves the page's **main inner panel** when the page itself can't scroll (editors, dashboards, mail apps), and says when it is already at the top or bottom.
+- Every click now moves the pointer onto the target and re-measures before pressing, so layouts that shift on hover are hit correctly.
+- **Meta Ads Manager playbook** rewritten from the live run: the create flow, manual setup, inner scrolling, hover pencils, locations, where the age range lives, never Escape inside the editor, and closing the "Publish draft items?" dialog to keep a draft.
+- The agent now checks for "Show more options" / "Advanced" / "Further limit" before reporting that a setting doesn't exist.
+### Fixed
+- CI: a test file that crashes on a slow shared runner gets one more try, and the failing log's last lines are printed.
+
 ## [2.5.0] — 2026-10-01
 A results-focused release, based on a feature-by-feature audit of Claude in Chrome, Nanobrowser, browser-use, BrowserOS, OpenBrowse, Pie and others ([docs/AUDIT.md](docs/AUDIT.md)).
 ### Added

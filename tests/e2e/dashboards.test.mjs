@@ -21,6 +21,18 @@ const PANEL = `<!doctype html><html><head><title>Hosting panel</title></head><bo
 const EMAIL = `<!doctype html><html><body><h2>Create email account</h2><label>Email address <input id="addr" placeholder="name@site.test"></label><button onclick="document.getElementById('out').textContent='Account '+document.getElementById('addr').value+' created'">Create account</button><p role="alert" id="out"></p></body></html>`;
 const LONG = `<!doctype html><html><body><h1>Website settings</h1>${Array.from({ length: 140 }, (_, i) => `<p>Setting paragraph ${i} with some descriptive text about options.</p>${i === 60 ? '<p>Plan price: $19/month, billed yearly.</p>' : ''}`).join('')}<h2>Danger zone</h2><button onclick="this.textContent='Deleting…'">Delete website</button></body></html>`;
 
+// An Ads-Manager-style editor: the window can't scroll (the panel does), a row's Edit pencil only shows
+// after the row has been hovered for a moment, and a real button sits inside a clickable row.
+const ADS = `<!doctype html><html><head><title>Ad set editor</title><style>html,body{margin:0;height:100%;overflow:hidden;font:14px sans-serif}
+#panel{height:100vh;overflow-y:auto} .row{display:flex;gap:12px;align-items:center;padding:10px 16px;width:520px;border:1px solid #ddd}
+.pencil{visibility:hidden} .row.on .pencil{visibility:visible} .rowc{cursor:pointer;padding:12px 16px;width:520px;border:1px solid #ddd}</style></head><body>
+<div id="panel"><h2>Audience controls</h2>
+<div class="row" id="loc"><span id="locv">Locations: United States</span><button class="pencil" aria-label="Edit locations" onclick="document.getElementById('locv').textContent='Locations: Bangladesh'">✎</button></div>
+<div style="height:1500px"></div>
+<div class="rowc" onclick="void 0">Minimum age 18 <button onclick="event.stopPropagation();this.textContent='Age editor open'">Edit age</button></div>
+<div style="height:900px"></div></div>
+<script>const r=document.getElementById('loc');let t;r.addEventListener('mouseenter',()=>{t=setTimeout(()=>r.classList.add('on'),150)});r.addEventListener('mouseleave',()=>{clearTimeout(t);r.classList.remove('on')});</script></body></html>`;
+
 let calls = 0; const out = { ctxLine: '', ctxOK: false, starOK: false, alertOK: false, rejected: 0, reviewerCalls: 0, batchSkipped: false, frameIds: false, frameAlert: false, frameText: false, findOK: false, foundInView: false, searchCount: -1, extractSawPrice: false, extractAnswer: '' };
 const tc = (...calls_) => ({ role: 'assistant', content: '', tool_calls: calls_.map(([name, args]) => ({ id: 'c' + (++calls) + Math.random().toString(36).slice(2, 5), type: 'function', function: { name, arguments: JSON.stringify(args) } })) });
 const idOf = (state, re) => { const l = state.split('\n').find(x => re.test(x) && /^\*?\[\d+\]/.test(x)); return l ? +l.match(/^\*?\[(\d+)\]/)[1] : -1; };
@@ -58,6 +70,14 @@ function brain(body) {
     if (n === 5) { out.frameAlert = /ALERT: Account info@site\.test created/.test(state); return tc(['get_page_text', {}]); }
     if (n === 6) { out.frameText = /Account info@site\.test created/.test(last); return tc(['done', { answer: 'Created info@site.test' }]); }
   }
+  if (/ad set editor/.test(task)) {
+    if (n === 0) return tc(['navigate', { url: `${B}/ads` }]);
+    if (n === 1) { const line = state.split('\n').find(l => /"Edit locations"/.test(l)) || ''; out.hoverLine = line; out.hoverListed = /\(shows on hover\)/.test(line) && /in: "Locations: United States"/.test(line); return tc(['click', { id: idOf(state, /"Edit locations"/) }]); }
+    if (n === 2) { out.hoverClickOK = /Locations: Bangladesh/.test(state); return tc(['scroll', { direction: 'down', amount: 2 }]); }
+    if (n === 3) { const r = JSON.parse(last); out.panelScrolled = !!r.scrolledPanel && r.moved > 0; out.nestedOK = idOf(state, /<button> "Edit age"/) > 0; return tc(['click', { id: idOf(state, /"Minimum age 18/) }]); }
+    if (n === 4) { out.noChangeNote = /Nothing on the page changed/.test(last); return tc(['click', { id: idOf(state, /<button> "Edit age"/) }]); }
+    if (n === 5) { out.realClickQuiet = !/Nothing on the page changed/.test(last) && /Age editor open/.test(state); return tc(['done', { answer: 'Editor checked.' }]); }
+  }
   if (/plan price/.test(task)) {
     if (n === 0) return tc(['navigate', { url: `${B}/long` }]);
     if (n === 1) return tc(['find', { query: 'Delete website button in the danger zone' }]);
@@ -70,7 +90,7 @@ function brain(body) {
 const server = http.createServer((req, res) => { let b = ''; req.on('data', d => b += d); req.on('end', () => {
   if (req.url === '/v1/chat/completions') { res.writeHead(200, { 'content-type': 'application/json' }); return res.end(JSON.stringify({ choices: [{ message: brain(JSON.parse(b)) }], usage: { prompt_tokens: 10, completion_tokens: 5 } })); }
   res.writeHead(200, { 'content-type': 'text/html; charset=utf-8' });
-  res.end(req.url.startsWith('/dns') ? DNS : req.url.startsWith('/panel') ? PANEL : req.url.startsWith('/email') ? EMAIL : req.url.startsWith('/long') ? LONG : '<h1>Start</h1>');
+  res.end(req.url.startsWith('/dns') ? DNS : req.url.startsWith('/panel') ? PANEL : req.url.startsWith('/email') ? EMAIL : req.url.startsWith('/long') ? LONG : req.url.startsWith('/ads') ? ADS : '<h1>Start</h1>');
 }); });
 await new Promise(r => server.listen(PORT, r));
 const ctx = await chromium.launchPersistentContext(fs.mkdtempSync(path.join(os.tmpdir(), 'dp-dash-')), { headless: false, args: [`--disable-extensions-except=${EXT}`, `--load-extension=${EXT}`], viewport: { width: 1200, height: 800 } });
@@ -94,6 +114,7 @@ out.checkNote = await v.$$eval('.memnote', n => n.map(x => x.textContent).find(t
 await v.evaluate(() => chrome.storage.local.set({ verifyDone: false }));
 out.final2 = await run('Create the email account info@site.test in the hosting panel');
 out.final3 = await run('Find the plan price and the delete button');
+out.final4 = await run('Open the ad set editor and change the location');
 out.errors = errors; out.calls = calls;
 console.log(JSON.stringify(out, null, 1));
 await ctx.close(); server.close();
