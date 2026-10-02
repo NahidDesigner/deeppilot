@@ -1283,7 +1283,11 @@ function readAgentForm() {
   const title = $('agTitle').value.trim();
   return { id: $('agId').value || undefined, title, name: title, description: $('agDesc').value, rules: $('agRules').value, inputs, stages, maxCost: $('agMaxCost').value, maxStepsPerStage: $('agMaxSteps').value, parallel: $('agParallel').value };
 }
-$('agentForm').addEventListener('toggle', () => { if ($('agentForm').open && !$('agStages').children.length) fillAgentForm({}); });
+$('agentForm').addEventListener('toggle', () => {
+  if (!$('agentForm').open || $('agStages').children.length) return;
+  // Opening an empty form: fill in the defaults — unless a title was already typed, then only add the first stage.
+  if ($('agTitle').value.trim()) $('agStages').appendChild(stageEditor({})); else fillAgentForm({});
+});
 $('agAddStage').addEventListener('click', () => { const li = stageEditor({}); $('agStages').appendChild(li); li.querySelector('input').focus(); });
 $('agCancel').addEventListener('click', () => { $('agentForm').open = false; $('agentFormTitle').textContent = 'New agent'; $('agId').value = ''; });
 $('agSave').addEventListener('click', async () => {

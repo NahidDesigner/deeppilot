@@ -2,6 +2,11 @@
 
 All notable changes to DeepPilot. The format follows [Keep a Changelog](https://keepachangelog.com/) and versions follow [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+### Fixed
+- Agent form: opening the form no longer resets a title that was typed before its defaults loaded (seen only on very slow machines).
+- CI: the `parallel-agent` suite waits for the form to be ready before typing and reports the form's own error message; test logs and screenshots are now uploaded (the `.out` folder is hidden and was being skipped).
+
 ## [2.5.1] — 2026-10-02
 Built from the first run on the **live Meta Ads Manager** (a Traffic campaign and ad set created as a draft on a fresh ad account: completed, nothing published, about 95 steps and $0.05). The run showed three things that slowed it down; this release fixes them.
 ### Added

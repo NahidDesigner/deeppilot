@@ -39,4 +39,5 @@ jobs:
         with:
           name: e2e-output
           path: tests/e2e/.out/
+          include-hidden-files: true   # .out is a dot-folder; without this nothing is uploaded
           retention-days: 7

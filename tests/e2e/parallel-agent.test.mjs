@@ -70,6 +70,10 @@ const theme = await v.evaluate(() => document.documentElement.dataset.theme);
 // Build via the form to exercise the new fields
 await v.click('#agentsBtn');
 await v.click('#agentForm > summary');
+// The form fills in its defaults when it opens (a 'toggle' event). Wait for that before typing, or on a
+// slow machine the defaults can land after — and wipe — what was just typed.
+await v.waitForSelector('#agStages .st-title');
+await v.waitForTimeout(150);
 await v.fill('#agTitle', 'Site Auditor');
 const parallelDefault = await v.inputValue('#agParallel');
 await v.fill('#agParallel', '4');
@@ -85,7 +89,8 @@ await v.click('#agAddStage');
 await v.fill('#agStages li:nth-child(3) .st-title', 'Report');
 await v.fill('#agStages li:nth-child(3) .st-ins', 'create_file audit.csv');
 await v.click('#agSave');
-await v.waitForFunction(() => document.getElementById('agMsg').textContent.includes('Saved'));
+await v.waitForFunction(() => /Saved|Error/.test(document.getElementById('agMsg').textContent));
+{ const m = await v.textContent('#agMsg'); if (!m.includes('Saved')) throw new Error('Saving the agent failed: ' + m); }
 const saved = await v.evaluate(async () => (await chrome.storage.local.get('agents')).agents.map(a => ({ name: a.name, parallel: a.parallel, seq: a.stages.map(s => s.sequential) })));
 await v.waitForTimeout(1300);
 const cardCmd = await v.textContent('#agentList .card-cmd');
